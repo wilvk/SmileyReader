@@ -1,0 +1,28 @@
+{
+  "name": "Smiley Reader",
+  "version": "1.0.4",
+  "description": "Smile as you are guided to read text and increase your reading speed (beta).",
+  "permissions": ["tabs","contextMenus"],
+  "web_accessible_resources": ["arrowLeft.png", "arrowUp.png","cross.png"] ,
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["rangy-core.js","rangy-serializer.js","rangy-cssclassapplier.js","contentscript.js"]
+    }
+  ],
+  
+  "background": { "scripts": ["background.js"] },
+  "options_page": "options.html",  
+  
+  "icons": { "16":  "icon16.png",
+             "48":  "icon48.png",
+            "128":  "icon128.png" },
+
+  "browser_action": {
+    "default_title": "Smiley Reader",
+    "default_icon": "icon.png",
+    "default_popup": "popup/popup.html",
+    "run_at": "document_start"
+  },
+  "manifest_version": 2
+}

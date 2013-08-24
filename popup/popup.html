@@ -1,0 +1,77 @@
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Reader: Activity Charts</title>
+	<link href="examples.css" rel="stylesheet" type="text/css">
+	<script language="javascript" type="text/javascript" src="jquery.js"></script>
+	<script language="javascript" type="text/javascript" src="jquery.flot.js"></script>
+	<script language="javascript" type="text/javascript" src="jquery.flot.time.js"></script>
+	<script language="javascript" type="text/javascript" src="jquery.flot.selection.js"></script>		
+	<script language="javascript" type="text/javascript" src="jquery.flot.pie.js"></script>
+	<script src="tabcontent.js" type="text/javascript"></script>
+    <link href="template/tabcontent.css" rel="stylesheet" type="text/css" />	
+</head>
+<body>
+
+<div style="margin: 0 auto; padding: 0px 0 00px; font: 0.85em arial;float:left;">
+        <ul class="tabs" persist="true">
+            <li><a href="#" rel="view1">Words Read</a></li>
+            <li><a href="#" rel="view2">Reading Speed</a></li>
+            <li><a href="#" rel="view3">Reading Time</a></li>
+            <li><a href="#" rel="view4">Common Websites Read</a></li>
+			<li><a href="#" rel="view5">Reading Log</a></li>
+        </ul>
+        <div class="tabcontents">
+            <div id="view1" class="tabcontent" style="width:720px;height:510px">
+                <b>Words Read over Time</b>				
+				<div id="content">				
+					<div class="demo-container" style="height:270px; width:700px;float:left;clear:left;">
+						<div id="placeholderWT" class="demo-placeholder" style="height:225px;width:670px"></div>
+					</div>
+					<div class="demo-container" style="height:120px;width:700px;float:left;clear:left;">
+						<div id="overviewWT" class="demo-placeholder" style="height:75px;width:670px"></div>
+					</div>						
+				</div>				
+            </div>
+            <div id="view2" class="tabcontent" style="width:720px;height:510px">
+                <b>Reading Speed over Time (Words Per Minute)</b>				
+				<div id="content">				
+					<div class="demo-container" style="height:270px; width:700px;float:left;clear:left;">
+						<div id="placeholderWPM" class="demo-placeholder" style="height:225px;width:670px"></div>
+					</div>
+					<div class="demo-container" style="height:120px;width:700px;float:left;clear:left;">
+						<div id="overviewWPM" class="demo-placeholder" style="height:75px;width:670px"></div>
+					</div>						
+				</div>	
+            </div>
+            <div id="view3" class="tabcontent" style="width:720px;height:510px">
+                <b>Time Spent Reading (Minutes)</b>
+                <div id="content">				
+					<div class="demo-container" style="height:270px; width:700px;float:left;clear:left;">
+						<div id="placeholderTR" class="demo-placeholder" style="height:225px;width:680px"></div>
+					</div>
+					<div class="demo-container" style="height:120px;width:700px;float:left;clear:left;">
+						<div id="overviewTR" class="demo-placeholder" style="height:75px;width:680px"></div>
+					</div>						
+				</div>	
+            </div>
+            <div id="view4" class="tabcontent" style="width:720px;height:510px">
+                <b>Websites Read by Number of Highlights</b>
+				
+				<div id="content">				
+					<div class="demo-container" style="height:390px; width:700px;float:left;clear:left;">
+						<div id="default"  style="height:300px;width:670px"></div>
+					</div>					
+				</div>	                          
+            </div>
+			<div id="view5" class="tabcontent" style="width:720px;height:510px">
+                <b>Reading Log</b>
+				</br>
+				<div id="log_div" style="height:480px;width:680x;border:1px solid #ccc;overflow:auto;"><span id="reading_log"></span></div>                
+            </div>
+			<small><span style="float:left">Words Read: <span id="wordsRead"></span>&nbsp;Average Words Per Minute: <span id="averageWpm"></span>&nbsp;Total Time Reading: <span id="totalTime"></span></span><span style="float:right;clear:right;"><a id="optionsLink" href="">Options</a></span></small>
+        </div>
+    </div>
+</body>
+<script language="javascript" type="text/javascript" src="chart.functions.js"></script>
+</html>

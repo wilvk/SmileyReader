@@ -1,111 +1,98 @@
-// local storage options
-
 var first_run = false;
-if (!localStorage['ran_before']) {
-  first_run = true;
-  localStorage['ran_before'] = '1';
+
+if (!localStorage['ran_before']) 
+{
+	first_run = true;
+	localStorage['ran_before'] = '1';
 }
 
-if (first_run) {
+if (first_run) 
+{
+	// colors
+	localStorage["cpHexReadingBg"] = "#fbfaf9";
+	localStorage["cpHexReadingFg"] = "#191313";
+	localStorage["cpHexNonReadingBg"] = "#f7ff00";
+	localStorage["cpHexNonReadingFg"] = "#342c2c";
 
-			// colors
-			localStorage["cpHexReadingBg"] = "#fbfaf9";
-			localStorage["cpHexReadingFg"] = "#191313";
-			localStorage["cpHexNonReadingBg"] = "#f7ff00";
-			localStorage["cpHexNonReadingFg"] = "#342c2c";
-			
-			// text styles foreground
-			localStorage["ReadingBold"] = false;
-			localStorage["ReadingUnderline"] = false;
-			localStorage["ReadingItalic"] = false;
-			localStorage["ReadingStrikethrough"] = false;
-			
-			// text styles background
-			localStorage["NonReadingBold"] = false;
-			localStorage["NonReadingUnderline"] = false;
-			localStorage["NonReadingItalic"] = false;
-			localStorage["NonReadingStrikethrough"] = false;
-			
-			// options
-			localStorage["WordsPerMinute"] = "200";
-			localStorage["WordPause"] = false;
-			localStorage["PauseSeconds"] = "10"; 
-			localStorage["AutoScroll"] = true;
-			localStorage["PauseWords"] = "1000";
-			localStorage["ShortCutKey"] = "Z";
-			localStorage["StopAfterWords"] = false;
-			localStorage["StopAfterWordsCount"] = "1000";
-			localStorage["StopAfterTime"] = false;
-			localStorage["StopAfterTimeMinutes"] = "5"; 
-			localStorage["StopAfterTimeSeconds"] ="0";
-			localStorage["OnScreenDisplay"] = false;
-			localStorage["PauseAtStartOfLine"] = false;
-			localStorage["PauseAtStartOfLineMilliseconds"] = "0";	
-			localStorage["GuideArrows"] = true;
-			localStorage["TextHighlight"] = false;
-			localStorage["ImageHighlight"] = true;
-			localStorage["ExcludeNonReadingText"] = false;
-			localStorage["AutoScrollHeight"] = "50";
-			 									 
+	// text styles foreground
+	localStorage["ReadingBold"] = false;
+	localStorage["ReadingUnderline"] = false;
+	localStorage["ReadingItalic"] = false;
+	localStorage["ReadingStrikethrough"] = false;
 
-			//create db
-			//var db = openDatabase('ReaderDb', '1.0', 'Database for the Text Reader', 5 * 1024 * 1024); 				
-			
-			//create table
-			//db.transaction(function (tx) {			
-			//tx.executeSql('CREATE TABLE Read (ReadId unique, DTSStart INTEGER, DTSEnd INTEGER, WPM INTEGER, StartWord INTEGER, EndWord INTEGER, Words INTEGER, ReadText TEXT, Website TEXT)'); });
-			//write
-			//db.transaction(function (tx) {tx.executeSql('INSERT INTO Read (ReadId, DTSStart) VALUES (4, ' + Date.now() + ')');})
-			
-			//read
-	//		db.transaction(function(fx) {
-//fx.executeSql('SELECT * FROM Read', [], function (fx, results) {
-//  var len = results.rows.length, i;
-//  for (i = 0; i < len; i++) {
-//    console.log("ReadId:" + results.rows.item(i).ReadId);
-//  }
-//});
-//});
+	// text styles background
+	localStorage["NonReadingBold"] = false;
+	localStorage["NonReadingUnderline"] = false;
+	localStorage["NonReadingItalic"] = false;
+	localStorage["NonReadingStrikethrough"] = false;
+
+	// options
+	localStorage["WordsPerMinute"] = "450";
+	localStorage["WordPause"] = false;
+	localStorage["PauseSeconds"] = "10"; 
+	localStorage["AutoScroll"] = true;
+	localStorage["PauseWords"] = "1000";
+	localStorage["ShortCutKey"] = "Z";
+	localStorage["StopAfterWords"] = false;
+	localStorage["StopAfterWordsCount"] = "1000";
+	localStorage["StopAfterTime"] = false;
+	localStorage["StopAfterTimeMinutes"] = "5"; 
+	localStorage["StopAfterTimeSeconds"] ="0";
+	localStorage["OnScreenDisplay"] = false;
+	localStorage["PauseAtStartOfLine"] = false;
+	localStorage["PauseAtStartOfLineMilliseconds"] = "0";	
+	localStorage["GuideArrows"] = true;
+	localStorage["TextHighlight"] = false;
+	localStorage["ImageHighlight"] = true;
+	localStorage["ExcludeNonReadingText"] = false;
+	localStorage["AutoScrollHeight"] = "50";
 }
 
-var id = chrome.contextMenus.create({"title": "Read Selected Text", "contexts":["selection"],
-                                       "onclick": genericOnClick});
-									   
-function genericOnClick(info, tab) {
-  var returnMessage = new Object();
-  returnMessage.type = "startReader";
-  sendMessage(returnMessage);
+var id = chrome.contextMenus.create( {
+		"title": "Read Selected Text", 
+		"contexts":["selection"], 
+		"onclick": genericOnClick
+	});
+
+function genericOnClick(info, tab) 
+{
+	var returnMessage = new Object();
+	returnMessage.type = "startReader";
+ 	sendMessage(returnMessage);
 }
-
-
-//local db - indexedDb storage
 
 var database;
 var request = window.indexedDB.open("reader",1);
 
-request.onerror = function(event) {			
+request.onerror = function(event) {
 	console.log(event.target.errorCode);
 };
 
-request.onsuccess = function(event) {
+request.onsuccess = function(event) 
+{
 	database=request.result;
 };
 
-request.onupgradeneeded = function(event) {
+request.onupgradeneeded = function(event) 
+{
 	var db = event.target.result;
-	var objectStore = db.createObjectStore("readEntry", { keyPath:  "id",autoIncrement:true});
+	var objectStore = db.createObjectStore(
+		"readEntry", 
+		{ 
+			keyPath: "id",
+			autoIncrement: true
+		});
 };
 
-function addRecord(readEntry) {
+function addRecord(readEntry) 
+{
 	if(database)
 	{		
 		var transaction = database.transaction(["readEntry"], "readwrite");
 		var objectStore = transaction.objectStore("readEntry");
 		var request=objectStore.put(readEntry);
 		
-		request.onsuccess = function(event) {    
-			
-		};
+		request.onsuccess = function(event) {};
 	}
 }
 
@@ -158,18 +145,18 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse)
 			returnMessage.ImageHighlight = (typeof localStorage["ImageHighlight"] == 'undefined')? false : localStorage["ImageHighlight"];			
 			returnMessage.ExcludeNonReadingText = (typeof localStorage["ExcludeNonReadingText"] == 'undefined')? false : localStorage["ExcludeNonReadingText"];
 			returnMessage.AutoScrollHeight = (typeof localStorage["AutoScrollHeight"] == 'undefined')? "50" : localStorage["AutoScrollHeight"];
-															
 		}
 		else if(request.type == "submitReadEntry")
 		{
 			addRecord(request.recordObject);
 		}
 	}
-	
+
 	sendMessage(returnMessage);
 });
 
-function sendWordsOverTime(senderId) {
+function sendWordsOverTime(senderId) 
+{
 	var wordTimeArray = getWordTimeArray();
 	var returnMessage = new Object();
 	returnMessage.type = "sendWordsOverTime";
@@ -178,19 +165,18 @@ function sendWordsOverTime(senderId) {
 	//TODO:modify array to word count per day (group by ranges)
 	sendMessageById(returnMessage, senderId);
 }
-	
 
 function sendMessageById(messageToReturn, tabId)
 {
-	chrome.windows.getCurrent(function(win){ 
+	chrome.windows.getCurrent(function(win) { 
 		console.log(win); 
 		chrome.tabs.sendMessage(win.id, messageToReturn);
-    }); 
-}	
+	}); 
+}
 
 function sendMessage(messageToReturn)
 {
 	chrome.tabs.getSelected(null, function(tab) {
-		chrome.tabs.sendMessage(tab.id, messageToReturn);
+			chrome.tabs.sendMessage(tab.id, messageToReturn);
 	});
-}	
+}

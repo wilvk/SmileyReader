@@ -924,7 +924,7 @@ function splitByNonReadable(textArray)
 
 function removeSpans() 
 {
-	for(var currentSpan = 0; currentSpan < words; i++)
+	for(var currentSpan = 0; currentSpan < words; currentSpan++)
 	{
 		var padSpanWord = getPadSpanWord(currentSpan);
 		removeElementsByClass(padSpanWord);

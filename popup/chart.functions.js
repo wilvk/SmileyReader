@@ -24,9 +24,11 @@ function getChartArrays()
 	if(database)
 	{	
 		var objectStore = database.transaction("readEntry").objectStore("readEntry");
-		objectStore.openCursor().onsuccess = function(event) {
+		objectStore.openCursor().onsuccess = function(event) 
+		{
 			var cursor = event.target.result;
-			if (cursor) {
+			if (cursor) 
+			{
 				var timePoint = cursor.value.DTSStart - (offset * 60 * 1000)
 				
 				if(cursor.value.DTSEnd && cursor.value.DTSStart)
@@ -55,7 +57,7 @@ function getChartArrays()
 					}
 				}
 				
-				// wbsite stats
+				// website stats
 				var innerWebArray = new Array();
 				var webString = cursor.value.Website;
 				
@@ -74,12 +76,10 @@ function getChartArrays()
 						if(webArray[i].label == webString)
 						{
 							index = i;
-							//console.log("found");
 							break;
 						}
 					}							
 					
-					console.log("index",index);
 					if(index > -1)
 					{
 						webArray[index].data += cursor.value.Words;
@@ -99,8 +99,11 @@ function getChartArrays()
 				
 				// reading log
 				var logEl = document.getElementById("reading_log");
-				logEl.innerHTML = logEl.innerHTML + "</br>" + new Date(cursor.value.DTSStart).toLocaleString() + "&nbsp;Words: " + 
-					cursor.value.Words + "&nbsp;Words Per Minute: " + cursor.value.WPM + "&nbsp;</br>Website: "+cursor.value.Website+"</br></br>";
+				logEl.innerHTML = logEl.innerHTML + 
+					"</br><b>Website:</b> " + cursor.value.Website + 
+					"</br><b>Date:</b> " + new Date(cursor.value.DTSStart).toLocaleString() + 
+					"&nbsp;<b>Words:</b> " + cursor.value.Words + 
+					"&nbsp;<b>Words Per Minute:</b> " + cursor.value.WPM + "&nbsp;</b></br></b>";
 				
 				maxCursorKey = cursor.key;
 				
@@ -122,13 +125,13 @@ function getChartArrays()
 	}
 }
 
-function postLoadChanges() {
-
+function postLoadChanges() 
+{
 	var logDivEl = document.getElementById("log_div");
 	logDivEl.scrollTop = logDivEl.scrollHeight;
 }
 
- function secondsToString(seconds)
+function secondsToString(seconds)
 {
 	var numyears = Math.floor(seconds / 31536000);
 	var numdays = Math.floor((seconds % 31536000) / 86400); 
@@ -141,14 +144,16 @@ function postLoadChanges() {
 window.onload = getChartArrays; 
 
 var a = document.getElementById("optionsLink");
-a.onclick = function() {
-	chrome.tabs.create({
-		url: "options.html"
-	})
-	return false;
-}
+a.onclick = function() 
+	{
+		chrome.tabs.create({
+			url: "options.html"
+		})
+		return false;
+	}
 	
-function loadWordTimeArray() {
+function loadWordTimeArray() 
+{
 	var d = wordTimeArray;
 
 	var options = {
@@ -158,58 +163,13 @@ function loadWordTimeArray() {
 		selection: {
 			mode: "x"
 		},
-		bars: {show: true}
 	};
 
 	var plot = $.plot("#placeholderWT", [{data: d, color: '#92d5ea'}], options);
-
-	var overview = $.plot("#overviewWT", [{data: d, color: '#92d5ea'}], {
-		series: {
-			bars: {
-				show: true,
-				lineWidth: 1
-			},
-			shadowSize: 0
-		},
-		xaxis: {
-			ticks: [],
-			mode: "time"
-		},
-		yaxis: {
-			ticks: [],
-			min: 0,
-			autoscaleMargin: 0.1
-		},
-		selection: {
-			mode: "x"
-		}
-	});
-
-	// now connect the two
-
-	$("#placeholderWT").bind("plotselected", function (event, ranges) {
-
-		// do the zooming
-
-		plot = $.plot("#placeholderWT", [d], $.extend(true, {}, options, {
-			xaxis: {
-				min: ranges.xaxis.from,
-				max: ranges.xaxis.to
-			}
-		}));
-
-		// don't fire event on the overview to prevent eternal loop
-
-		overview.setSelection(ranges, true);
-	});
-
-	$("#overviewWT").bind("plotselected", function (event, ranges) {
-		plot.setSelection(ranges);
-	});
-
 }
 
-function loadWordsPerMinute() {
+function loadWordsPerMinute() 
+{
 	var d = wordsPerMinuteArray;
 
 	var options = {
@@ -223,56 +183,18 @@ function loadWordsPerMinute() {
 
 	var plot = $.plot("#placeholderWPM", [d], options);
 
-	var overview = $.plot("#overviewWPM", [d], {
-		series: {
-			lines: {
-				show: true,
-				lineWidth: 1
-			},
-			shadowSize: 0
-		},
-		xaxis: {
-			ticks: [],
-			mode: "time"
-		},
-		yaxis: {
-			ticks: [],
-			min: 0,
-			autoscaleMargin: 0.1
-		},
-		selection: {
-			mode: "x"
-		}
-	});
-
-	// now connect the two
-
-	$("#placeholderWPM").bind("plotselected", function (event, ranges) {
-
-		// do the zooming
-
+	$("#placeholderWPM").bind("plotselected", function (event, ranges) {		
 		plot = $.plot("#placeholderWPM", [d], $.extend(true, {}, options, {
 			xaxis: {
 				min: ranges.xaxis.from,
 				max: ranges.xaxis.to
 			}
-		}));
-
-		// don't fire event on the overview to prevent eternal loop
-
-		overview.setSelection(ranges, true);
+		}));		
 	});
-
-	$("#overviewWPM").bind("plotselected", function (event, ranges) {
-		plot.setSelection(ranges);
-	});
-
 }
 
 function loadTimeReading() {
 	var d = timeReadingArray;
-
-	// helper for returning the weekends in a period
 
 	var options = {
 		xaxis: {
@@ -281,59 +203,14 @@ function loadTimeReading() {
 		selection: {
 			mode: "x"
 		},
-		bars: {show: true}
 	};
 
 	var plot = $.plot("#placeholderTR", [d], options);
-
-	var overview = $.plot("#overviewTR", [d], {
-		series: {
-			bars: {
-				show: true,
-				lineWidth: 1
-			},
-			shadowSize: 0
-		},
-		xaxis: {
-			ticks: [],
-			mode: "time"
-		},
-		yaxis: {
-			ticks: [],
-			min: 0,
-			autoscaleMargin: 0.1
-		},
-		selection: {
-			mode: "x"
-		}
-	});
-
-	// now connect the two
-
-	$("#placeholderTR").bind("plotselected", function (event, ranges) {
-
-		// do the zooming
-
-		plot = $.plot("#placeholderTR", [d], $.extend(true, {}, options, {
-			xaxis: {
-				min: ranges.xaxis.from,
-				max: ranges.xaxis.to
-			}
-		}));
-
-		// don't fire event on the overview to prevent eternal loop
-
-		overview.setSelection(ranges, true);
-	});
-
-	$("#overviewTR").bind("plotselected", function (event, ranges) {
-		plot.setSelection(ranges);
-	});
-
 }
 
 function loadWebsitesViewed() {
-	$.plot($("#default"), webArray,
+	
+	$.plot($("#placeholderWSV"), webArray,
 	{
         series: {
             pie: { 
@@ -345,7 +222,7 @@ function loadWebsitesViewed() {
             }
         },
         legend: {
-            show: true
+            show: false
         }
 });
 }

@@ -193,7 +193,8 @@ function loadWordsPerMinute()
 	});
 }
 
-function loadTimeReading() {
+function loadTimeReading() 
+{
 	var d = timeReadingArray;
 
 	var options = {
@@ -208,21 +209,32 @@ function loadTimeReading() {
 	var plot = $.plot("#placeholderTR", [d], options);
 }
 
-function loadWebsitesViewed() {
-	
-	$.plot($("#placeholderWSV"), webArray,
-	{
-        series: {
-            pie: { 
-                show: true,
-                combine: {
-                    color: '#999',
-                    threshold: 0.05
+function loadWebsitesViewed() 
+{	
+		var options = {
+            series: {
+                pie: {
+                    show: true,
+                    radius: 1,
+                    tilt: 0.5,
+                    label:{                        
+                        radius: 3/4,
+                        formatter: function (label, series) {
+                            return '<div style="border:1px solid gray;font-size:8pt;text-align:center;padding:5px;color:white;">' + label + '<br/>' +   
+                            Math.round(series.percent) + '%</div>';
+                        },
+                        background: {
+                            opacity: 0.5,
+                            color: '#000'
+                        }
+                    }
                 }
+                    },
+            legend: {
+                show: false
             }
-        },
-        legend: {
-            show: false
-        }
-});
+         };
+	
+	
+	$.plot($("#placeholderWSV"), webArray, options);
 }

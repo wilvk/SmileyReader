@@ -1,100 +1,94 @@
-// global declarations
+document.addEventListener('DOMContentLoaded', function() {} );
 
 document.addEventListener('DOMContentLoaded', 
-function()
-{
-	// load stuff
-});
-
-document.addEventListener('DOMContentLoaded', 
-function()
-{	
-    cpReadingBg = ColorPicker(
-        document.getElementById('color-picker-reading-bg'),
-        function(hex, hsv, rgb) {
-          //document.body.style.backgroundColor = hex;        // #HEX
-		  //navbar.style.background = hex;
-		  document.getElementById('reading_text_sample').style.background = hex;
-		  window.cpHexReadingBg = hex;
-        });    
-		
-	cpReadingFg = ColorPicker(
-        document.getElementById('color-picker-reading-fg'),
-        function(hex, hsv, rgb) {
-          //document.body.style.backgroundColor = hex;        // #HEX
-		  //navbar.style.background = hex;
-		  document.getElementById('reading_text_sample').style.color = hex
-		  window.cpHexReadingFg = hex;
-        });    
-		
-	cpNonReadingBg = ColorPicker(
-        document.getElementById('color-picker-non-reading-bg'),
-        function(hex, hsv, rgb) {
-          //document.body.style.backgroundColor = hex;        // #HEX
-		  //navbar.style.background = hex;
-		  document.getElementById('non_reading_text_sample').style.background = hex;
-		  window.cpHexNonReadingBg = hex;
-        });    
-		
-	cpNonReadingFg = ColorPicker(
-        document.getElementById('color-picker-non-reading-fg'),
-        function(hex, hsv, rgb) {
-          //document.body.style.backgroundColor = hex;        // #HEX
-		  //navbar.style.background = hex;
-		  document.getElementById('non_reading_text_sample').style.color = hex
-		  window.cpHexNonReadingFg = hex;
-        });    
-});
+	function()
+	{	
+		cpReadingBg = ColorPicker(
+			document.getElementById('color-picker-reading-bg'),
+			function(hex, hsv, rgb) {
+			  document.getElementById('reading_text_sample').style.background = hex;
+			  window.cpHexReadingBg = hex;
+			});    
+			
+		cpReadingFg = ColorPicker(
+			document.getElementById('color-picker-reading-fg'),
+			function(hex, hsv, rgb) {
+			  document.getElementById('reading_text_sample').style.color = hex
+			  window.cpHexReadingFg = hex;
+			});    
+			
+		cpNonReadingBg = ColorPicker(
+			document.getElementById('color-picker-non-reading-bg'),
+			function(hex, hsv, rgb) {
+			  document.getElementById('non_reading_text_sample').style.background = hex;
+			  window.cpHexNonReadingBg = hex;
+			});    
+			
+		cpNonReadingFg = ColorPicker(
+			document.getElementById('color-picker-non-reading-fg'),
+			function(hex, hsv, rgb) {
+			  document.getElementById('non_reading_text_sample').style.color = hex
+			  window.cpHexNonReadingFg = hex;
+			});    
+	});
 
 
-var navbar_top=100;
+var navbar_top = 100;
 
-document.addEventListener('DOMContentLoaded', function() { window.addEventListener("scroll",navBarResetTop,false);});
+document.addEventListener('DOMContentLoaded', function() { window.addEventListener("scroll", navBarResetTop,false);});
 
 function navBarResetTop() 
 {
   var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
-  if(scrollTop>navbar_top&&navbar.className==="stnavbar_absolute") {
+  
+  if(scrollTop>navbar_top&&navbar.className==="stnavbar_absolute") 
+  {
     document.getElementById("stnavbar").className="stnavbar_fixed";
   }
-  else if(scrollTop<navbar_top&&navbar.className==="stnavbar_fixed") {
+  else if(scrollTop<navbar_top&&navbar.className==="stnavbar_fixed") 
+  {
     document.getElementById("stnavbar").className="stnavbar_absolute";
   }
 };
 
-function save_options() {
+function save_options() 
+{
 	//colors	
 	if(!(typeof cpHexReadingBg == 'undefined'))
+	{
 		localStorage["cpHexReadingBg"] = cpHexReadingBg;
+	}
 	else 
+	{
 		localStorage["cpHexReadingBg"] = "#ffffff";
+	}
 	
 	if(!(typeof cpHexReadingFg == 'undefined'))
+	{
 		localStorage["cpHexReadingFg"] = cpHexReadingFg;
+	}
 	else
+	{
 		localStorage["cpHexReadingFg"] = "#000000";
+	}
 	
 	if(!(typeof cpHexNonReadingBg == 'undefined'))
+	{
 		localStorage["cpHexNonReadingBg"] = cpHexNonReadingBg;
+	}
 	else
+	{
 		localStorage["cpHexNonReadingBg"] = "#ffffff";
+	}
 	
 	if(!(typeof cpHexNonReadingFg == 'undefined'))
+	{
 		localStorage["cpHexNonReadingFg"] = cpHexNonReadingFg;
+	}
 	else
+	{
 		localStorage["cpHexNonReadingFg"] = "#000000";
-	
-	// text styles focus
-	//localStorage["ReadingBold"] = document.getElementById("ReadingBold").checked;
-	//localStorage["ReadingUnderline"] = document.getElementById("ReadingUnderline").checked;
-	//localStorage["ReadingItalic"] = document.getElementById("ReadingItalic").checked;
-	//localStorage["ReadingStrikethrough"] = document.getElementById("ReadingStrikethrough").checked;
-	
-	// text styles background
-	//localStorage["NonReadingBold"] = document.getElementById("NonReadingBold").checked;
-	//localStorage["NonReadingUnderline"] = document.getElementById("NonReadingUnderline").checked;
-	//localStorage["NonReadingItalic"] = document.getElementById("NonReadingItalic").checked;
-	//localStorage["NonReadingStrikethrough"] = document.getElementById("NonReadingStrikethrough").checked;
+	}
 	
 	// options
 	localStorage["WordsPerMinute"] = document.getElementById("WordsPerMinute").value;
@@ -121,9 +115,14 @@ function save_options() {
 	var autoScrollHeight = document.getElementById("AutoScrollHeight").value;
 	
 	if (autoScrollHeight > 100)
+	{
 		autoScrollHeight = 100;
+	}
+	
 	if (autoScrollHeight < 0)
+	{
 		autoScrollHeight = 0;
+	}
 		
 	localStorage["AutoScrollHeight"] = autoScrollHeight;
 	
@@ -139,24 +138,13 @@ function save_options() {
 }
 
 // Restores select box state to saved value from localStorage.
-function load_options() {	
+function load_options() 
+{	
 	//colors	
 	cpReadingBg.setHex(localStorage["cpHexReadingBg"]);
 	cpReadingFg.setHex(localStorage["cpHexReadingFg"]);
 	cpNonReadingBg.setHex(localStorage["cpHexNonReadingBg"]);
 	cpNonReadingFg.setHex(localStorage["cpHexNonReadingFg"]);
-	
-	// text styles focus
-	//document.getElementById("ReadingBold").checked = localStorage["ReadingBold"] == 'true'? true : false;
-	//document.getElementById("ReadingUnderline").checked = localStorage["ReadingUnderline"] == 'true'? true : false;
-	//document.getElementById("ReadingItalic").checked = localStorage["ReadingItalic"] == 'true'? true : false;
-	//document.getElementById("ReadingStrikethrough").checked = localStorage["ReadingStrikethrough"] == 'true'? true : false;
-	
-	// text styles background
-	//document.getElementById("NonReadingBold").checked = localStorage["NonReadingBold"] == 'true'? true : false;
-	//document.getElementById("NonReadingUnderline").checked = localStorage["NonReadingUnderline"] == 'true'? true : false;
-	//document.getElementById("NonReadingItalic").checked = localStorage["NonReadingItalic"] == 'true'? true : false;
-	//document.getElementById("NonReadingStrikethrough").checked = localStorage["NonReadingStrikethrough"] == 'true'? true : false;
 	
 	// options
 	document.getElementById("WordsPerMinute").value = parseInt(localStorage["WordsPerMinute"]);

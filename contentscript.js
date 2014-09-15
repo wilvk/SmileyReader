@@ -964,6 +964,13 @@ function canSpansBeAddedToCurrentNode(node)
 		return false;
 	}
 	
+	var parentElementIsHidden = isParentParagraphOrDivHidden(node);
+	
+	if(parentElementIsHidden)
+	{
+		return false;
+	}
+		
 	if(node.nodeType == 3)
 	{			
 		switch(node.parentNode.nodeName.toLowerCase())
@@ -976,10 +983,23 @@ function canSpansBeAddedToCurrentNode(node)
 				return true;
 		}
 	}
-	else
+
+	return false;
+}
+
+function isParentParagraphOrDivHidden(node)
+{
+	var element = findFirstParagraphOrDiv(node);
+	
+	if(element)
 	{
-		return false;
+		if(element.style.display.toLowerCase() === 'none')
+		{
+			return true;
+		}
 	}
+	
+	return false;	
 }
 
 function isNodeOnlyNonReadableText(text)
@@ -991,16 +1011,10 @@ function isNodeOnlyNonReadableText(text)
 		if(replacedString.length === 0)
 		{
 			return true;
-		}
-		else
-		{
-			return false;
-		}
+		}		
 	}
-	else
-	{
-		return true;
-	}
+	
+	return false;
 }
 
 function isDivClassNameHidden(node)
@@ -1011,10 +1025,8 @@ function isDivClassNameHidden(node)
 	{
 		return true;
 	}
-	else
-	{
-		return false;
-	}
+
+	return false;
 }
 
 function splitByNonReadable(textArray) 

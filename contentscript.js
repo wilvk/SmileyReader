@@ -1,6 +1,6 @@
 var words=0;
-var currentWordCount=0;
-var settingsMode=false;
+var currentWordCount = 0;
+var settingsMode = false;
 var readerRunning = false;
 var paused = false;
 var settings = {};
@@ -10,9 +10,12 @@ var newLine = false;
 var scrollByDistance = 0;
 var scrollMiddle = 0;
 var pxVariance = 6;
+var arbitraryMaxNumberOfWordsOnAPage = 1000000;
+var stopReadingTime = 0;
 
 //loop variables
 var totalTime = 0;
+var timeout = 0;
 
 // indexdb recorded fields
 var startTime = 0;
@@ -27,6 +30,8 @@ var serialisedSelection = "";
 
 // imageVariables
 var lineLength = 0;
+
+var spacebarKeyCharCode = 32;
 
 //div
 var iDiv;
@@ -50,19 +55,14 @@ function messageReceived(request, sender, sendResponse)
 		settings.cpHexReadingFg = request.cpHexReadingFg;
 		settings.cpHexNonReadingBg = request.cpHexNonReadingBg;
 		settings.cpHexNonReadingFg = request.cpHexNonReadingFg;
-			
 		settings.ReadingBold = JSON.parse(request.ReadingBold);
 		settings.ReadingUnderline = JSON.parse(request.ReadingUnderline);
 		settings.ReadingItalic = JSON.parse(request.ReadingItalic);
 		settings.ReadingStrikethrough = JSON.parse(request.ReadingStrikethrough);
-			
-		// text styles background
 		settings.NonReadingBold = JSON.parse(request.NonReadingBold);
 		settings.NonReadingUnderline = JSON.parse(request.NonReadingUnderline);
 		settings.NonReadingItalic = JSON.parse(request.NonReadingItalic);
 		settings.NonReadingStrikethrough = JSON.parse(request.NonReadingStrikethrough);
-			
-		// options
 		settings.WordsPerMinute = parseInt(request.WordsPerMinute);
 		settings.WordPause = JSON.parse(request.WordPause);
 		settings.PauseSeconds = parseInt(request.PauseSeconds);
@@ -82,7 +82,7 @@ function messageReceived(request, sender, sendResponse)
 		settings.ImageHighlight = JSON.parse(request.ImageHighlight);
 		settings.ExcludeNonReadingText = JSON.parse(request.ExcludeNonReadingText);
 		settings.AutoScrollHeight = parseInt(request.AutoScrollHeight);			
-			
+
 		afterSettingsLoaded();
 	} 
 	else if(request.type == "startReader")
@@ -91,12 +91,9 @@ function messageReceived(request, sender, sendResponse)
 	}
 }	
 
-chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) 
-	{
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		messageReceived(request, sender, sendResponse);
-	}
-);
+});
 
 init();
 
@@ -111,54 +108,24 @@ function setUpOnScreenDisplay()
 	var style = document.createElement('style');
 	style.type = 'text/css';
 
-/*jshint multistr: true */
-	style.innerHTML = '#navbar.navbar_absolute {\
-	  position:absolute;\
-	  font-family: Helvetica, sans-serif;\
-	  z-index: 1000;\
-	  font-size: 12px;\
-	  top:5px;\
-	  width:200px;\
-	  right:5px;\
-	  height:50px;\
-	  border:2px solid;\
-	  padding:15px;\
-	  border-radius:25px;\
-	  float:left;\
-	  align:left;\
-	  background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%);\
-	}\
-	\
-	#navbar.navbar_fixed \
-	{\
-	  position:fixed;\
-	  font-family: Helvetica, sans-serif;\
-	  z-index: 1000;\
-	  font-size: 12px;\
-	  top:5px;\
-	  width:200px;\
-	  right:5px;\
-	  height:50px;\
-	  border:2px solid;\
-	  padding:15px;\
-	  border-radius:25px;\
-	  float:left;\
-	  align:left;\
-	  background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%);\
-	}';
+	style.innerHTML = '#navbar.navbar_absolute {position:absolute; font-family: Helvetica, sans-serif; z-index: 1000; font-size: 12px; top:5px; width:200px; right:5px; height:50px; border:2px solid; padding:15px; border-radius:25px; float:left; align:left;\
+	background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); }\
+	#navbar.navbar_fixed { position:fixed; font-family: Helvetica, sans-serif; z-index: 1000; font-size: 12px; top:5px; width:200px; right:5px; height:50px; border:2px solid; padding:15px; border-radius:25px; float:left; align:left;\
+	background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%);}';
 
 	document.getElementsByTagName('head')[0].appendChild(style);
+	
 	document.addEventListener('DOMContentLoaded', function() { 
-		window.addEventListener("scroll",navBarResetTop,false);
+		window.addEventListener("scroll", navBarResetTop, false);
 	});
 
 	iDiv = document.createElement('div');
 	iDiv.id = 'navbar';
 	iDiv.className = 'navbar_fixed';
 	document.getElementsByTagName('body')[0].appendChild(iDiv);
-	
+
 	iDiv.innerHTML = 'Words Per Minute: <span id=\'words_per_minute\'></span></br>Words Read: <span id=\'words_read\'></span></br>Time Elapsed: <span id=\'time_elapsed\'></span>';
-	
+
 	var elImage = document.createElement('img');
 	elImage.setAttribute('src', chrome.extension.getURL('cross.png'));
 	elImage.setAttribute('id', 'crossImage');
@@ -167,7 +134,7 @@ function setUpOnScreenDisplay()
 	elImage.style.right = "20px";
 	elImage.onclick = closeOnScreenDisplay;
 	iDiv.appendChild(elImage);	
-	
+
 	var pauseEl = document.createElement("div");
 	pauseEl.id = "pauseText";
 	pauseEl.innerHTML = "Pause";
@@ -176,18 +143,19 @@ function setUpOnScreenDisplay()
 	pauseEl.style.color = "blue";
 	pauseEl.style.position = 'absolute';
 	pauseEl.onclick = togglePause;
+	
 	iDiv.appendChild(pauseEl);
-}	
+}
 
 function togglePause() 
 {
 	var pauseEl = document.getElementById("pauseText");
 	pauseEl.style.color = "blue";
-	
+
 	if(startTime > 0 && currentWordCount < words)
 	{
 		paused = !paused;
-		
+
 		if(paused)
 		{
 			pauseEl.innerHTML = "Unpause";
@@ -206,14 +174,15 @@ function closeOnScreenDisplay()
 
 function navBarResetTop() 
 {
-	var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
-	if(scrollTop>navbar_top&&navbar.className==="navbar_absolute") 
+	var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+
+	if(scrollTop > navbar_top&&navbar.className === "navbar_absolute") 
 	{
-		document.getElementById("navbar").className="navbar_fixed";
+		document.getElementById("navbar").className = "navbar_fixed";
 	}
-	else if(scrollTop<navbar_top&&navbar.className==="navbar_fixed") 
+	else if(scrollTop<navbar_top&&navbar.className === "navbar_fixed") 
 	{
-		document.getElementById("navbar").className="navbar_absolute";
+		document.getElementById("navbar").className = "navbar_absolute";
 	}
 }
 
@@ -228,11 +197,17 @@ function afterSettingsLoaded()
 {
 	settingsMode = document.getElementById("non_reading_text_sample") !== null;
 	scrollMiddle = window.innerHeight * (settings.AutoScrollHeight / 100);
-	setUpOnScreenDisplay();
-	
-	if(!settings.OnScreenDisplay || settingsMode)
+	wpmTimeout = 60000 / settings.WordsPerMinute;
+	stopReadingTime = (settings.StopAfterTimeMinutes * 60 * 1000) + (settings.StopAfterTimeSeconds * 1000);
+
+	if(settings.OnScreenDisplay && !settingsMode)
 	{
-		closeOnScreenDisplay();
+		setUpOnScreenDisplay();
+	}
+	
+	if(!settings.GuideArrows || settingsMode)
+	{
+		elImage.style.visibility = 'hidden';
 	}
 }
 
@@ -243,21 +218,19 @@ if (window == top)
 
 function doKeyPress(e)
 {
-	spacebarKeyCharCode = 32;
-	
 	if(settings.ShortCutKey)
 	{
 		keyPressKey = settings.ShortCutKey.toUpperCase();
 		keyPressKeyCharCode = keyPressKey.charCodeAt(0);
 
 		if (e.shiftKey && e.ctrlKey && e.which == keyPressKeyCharCode)
-		{ 	
+		{
 			startReading();
 		}
 		
 		if(e.keyCode == spacebarKeyCharCode && readerRunning)
 		{
-			window.scrollTo(0, parseFloat(document.getElementById("leftArrow").style.top.replace("px", "") - scrollMiddle));
+			setWindowScroll();
 			togglePause();
 		}
 	}
@@ -271,7 +244,8 @@ function startReading()
 	{
 		if(selectedText)
 		{	
-			highlightBlock();
+			initialiseBlock();
+			runGuidedText();
 		}
 		else
 		{
@@ -280,12 +254,17 @@ function startReading()
 	}
 	else
 	{
-		endWord = currentWordCount;
-		currentWordCount = words;
-		readerRunning=false;
-		recordRead();
-		alert("Reader stopped.");
-	}	
+		stopReader();
+	}
+}
+
+function stopReader()
+{
+	endWord = currentWordCount;
+	currentWordCount = words;
+	readerRunning=false;
+	recordRead();
+	alert("Reader stopped.");
 }
 
 function getSelectedText() 
@@ -300,25 +279,18 @@ function getSelectedText()
 	{
 		text = document.selection.createRange().text;
 	}
-	
+
 	return text;
 }
 
-//entry point of highlighting
-function highlightBlock() 
+function initialiseBlock() 
 {
-	var selection;
 	var nodes;
 	var startOffset;
-	var endOffset;
-	wpmTimeout = 60000 / settings.WordsPerMinute;
-	var stopReadingTime = (settings.StopAfterTimeMinutes * 60 * 1000) + (settings.StopAfterTimeSeconds * 1000);
+	var endOffset;		
 
-	if(!settingsMode)
-	{
-		serialisedSelection = rangy.serializeSelection();
-	}
-	
+	getSerialisedSelection();
+
 	readerRunning = true;
 	readText = window.getSelection().toString();
 
@@ -326,61 +298,56 @@ function highlightBlock()
 	{
 		makeEditableAndHighlight(settings.cpHexNonReadingBg, settings.cpHexNonReadingFg);		
 	}
-		
-	selection = window.getSelection().getRangeAt(0).startContainer.parentNode;	
+
 	nodes = getSelectedNodes();	
 	startOffset = window.getSelection().getRangeAt(0).startOffset;
 	endOffset = window.getSelection().getRangeAt(0).endOffset;	
-		
+
 	addSpansToTextNodes(nodes, startOffset, endOffset);
+
+	incrementCurrentWordCountToStartOfSpans();
+	createLeftArrowimage();	
+	createUpArrowImage();
 	
-	while(getWordElement(currentWordCount) === null)
+	var element = getWordElement(currentWordCount);
+	setGuideArrows(element);
+
+	if(!settingsMode)
+	{
+		setWindowScroll();
+	}
+
+	window.getSelection().removeAllRanges();
+	startWord = currentWordCount;
+	currentWordCount--;
+	firstLoop = true;
+	timeout = 0;
+	startTime = +new Date();		
+}
+
+function setWindowScroll()
+{
+	window.scrollTo(0, parseFloat(document.getElementById("leftArrow").style.top.replace("px", "") - scrollMiddle));
+}
+
+function incrementCurrentWordCountToStartOfSpans()
+{
+	while(getWordElement(currentWordCount) === null && currentWordCount < arbitraryMaxNumberOfWordsOnAPage)
 	{
 		currentWordCount++;
 	}
+}
 
-	var nonReadingStyle = getWordElement(currentWordCount).style;
-		
-	//left Arrow
-	var element = getWordElement(currentWordCount);
-	
-	var elImage = document.createElement('img');
-
-	// set the source for the image element
-	elImage.setAttribute('src', chrome.extension.getURL('arrowLeft.png'));
-	elImage.setAttribute('id', 'leftArrow');
-	console.log(chrome.extension.getURL('arrow.png')); 	
-	elImage.style.position = 'absolute';
-	
-	document.getElementsByTagName('body')[0].appendChild(elImage);
-		
-	// up Arrow
-	var elUpArrow = document.createElement('img');
-
-	// set the source for the image element
-	elUpArrow.setAttribute('src', chrome.extension.getURL('arrowUp.png'));
-	elUpArrow.setAttribute('id', 'upArrow');
-	elUpArrow.style.position = 'absolute';
-	
-	document.getElementsByTagName('body')[0].appendChild(elUpArrow);
-	
-	setGuideArrows(element);
-	
+function getSerialisedSelection()
+{
 	if(!settingsMode)
 	{
-		window.scrollTo(0, parseFloat(document.getElementById("leftArrow").style.top.replace("px", "") - scrollMiddle));
+		serialisedSelection = rangy.serializeSelection();
 	}
-	
-	window.getSelection().removeAllRanges();
-	
-	startWord = currentWordCount;
-	
-	currentWordCount--;
-	
-	firstLoop = true;
-	var timeout = 0;
-	startTime = +new Date();
-	
+}
+
+function runGuidedText()
+{
 	if(settings.TextHighlight)
 	{
 		runMainLoopTextHighlight();
@@ -389,65 +356,69 @@ function highlightBlock()
 	{
 		runMainLoopImageHighlight();
 	}
+}
 
-	console.log(selection.innerHTML);
+function createLeftArrowimage()
+{
+	var imageElement = document.createElement('img');
+	
+	imageElement.setAttribute('src', chrome.extension.getURL('arrowLeft.png'));
+	imageElement.setAttribute('id', 'leftArrow');
+	imageElement.style.position = 'absolute';
+	document.getElementsByTagName('body')[0].appendChild(imageElement);
+}
+
+function createUpArrowImage()
+{
+	var imageElement = document.createElement('img');
+	
+	imageElement.setAttribute('src', chrome.extension.getURL('arrowUp.png'));
+	imageElement.setAttribute('id', 'upArrow');
+	imageElement.style.position = 'absolute';
+
+	document.getElementsByTagName('body')[0].appendChild(imageElement);
 }
 
 function runMainLoopImageHighlight() 
 {
 	function mainLoopFunction() 
-	{					
+	{
 		currentWordCount++;
 		var element = getWordElement(currentWordCount);
-		
+		var canContinueRunning;
+
 		if(element)
 		{
 			setGuideArrows(element);
 		}
-		
+
 		if(newLine || firstLoop)
 		{
 			lineLength = getLengthOfCurrentLine();
 		}
 		
-		if(currentWordCount < words && !(settings.StopAfterWords && currentWordCount > settings.StopAfterWordsCount) && !(settings.StopAfterTime && totalTime > stopReadingTime))
-		{			
+		canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
+
+		if(canContinueRunning)
+		{
 			timeout = wpmTimeout;
 			
-			if(settings.WordPause && settings.PauseWords > 0 && settings.PauseSeconds > 0 && currentWordCount > 0 && currentWordCount % settings.PauseWords === 0)
-			{
-				timeout += (settings.PauseSeconds * 1000);	
-				pauseTime += (settings.PauseSeconds * 1000);	
-			}
+			setPauseIfAfterPauseWordCount();
 
 			if(newLine)
 			{
-				if(settings.PauseAtStartOfLine)
-				{
-					timeout += settings.PauseAtStartOfLineMilliseconds;
-					pauseTime += settings.PauseAtStartOfLineMilliseconds;
-				}
-				
-				if(settings.AutoScroll && !settingsMode)
-				{
-					window.scrollBy(0, scrollByDistance);
-				}
-				
+				setStartOfLinePause();
+				setAutoScroll();
 				newLine=false;
 			}
 				
 			totalTime += timeout;
-			
 			firstLoop = false;
-		
-			moveUpArrow(timeout, lineLength.increment);		
-			
-			if(settings.OnScreenDisplay && !settingsMode)
-			{
-				updateOnScreenDisplay();
-			}
-			
-			
+
+			moveUpArrow(timeout, lineLength.increment);
+
+			updateOnScreenDisplay();
+
 			function doPause() 
 			{
 				if(paused)
@@ -458,38 +429,92 @@ function runMainLoopImageHighlight()
 				else
 				{
 					setTimeout(mainLoopFunction, timeout);
-				}			
+				}
 			}
 			doPause();
-			
+
 		}
 		else
 		{
-			endTime = +new Date();
-			endWord = currentWordCount;
-			currentWordCount = words;
-			readerRunning=false;
-			recordRead();
+			endReader();
 		}
 	}
 	mainLoopFunction();
 }
 
+function endReader()
+{
+	endTime = +new Date();
+	endWord = currentWordCount;
+	currentWordCount = words;
+	readerRunning = false;
+	recordRead();
+}
+
+function setAutoScroll()
+{
+	if(settings.AutoScroll && !settingsMode)
+	{
+		window.scrollBy(0, scrollByDistance);
+	}
+}
+
+function setStartOfLinePause()
+{
+	if(settings.PauseAtStartOfLine)
+	{
+		timeout += settings.PauseAtStartOfLineMilliseconds;
+		pauseTime += settings.PauseAtStartOfLineMilliseconds;
+	}
+}
+
+function setPauseIfAfterPauseWordCount()
+{
+	if(settings.WordPause && settings.PauseWords > 0 && settings.PauseSeconds > 0 && currentWordCount > 0 && currentWordCount % settings.PauseWords === 0)
+	{
+		timeout += (settings.PauseSeconds * 1000);
+		pauseTime += (settings.PauseSeconds * 1000);
+	}
+}
+
+function areWordsAndTimeCorrectToKeepRunning()
+{
+	if(currentWordCount > words - 1)
+	{	
+		return false;
+	}
+		
+	if(settings.StopAfterWords && (currentWordCount > settings.StopAfterWordsCount))
+	{
+		return false;
+	}
+	
+	if(settings.StopAfterTime && (totalTime > stopReadingTime))
+	{
+		return false;
+	}
+	
+	return true;
+}
+
 function updateOnScreenDisplay() 
 {
-	var wordsRead = document.getElementById("words_read");
-	var wpm = document.getElementById("words_per_minute");
-	var timeElapsed = document.getElementById("time_elapsed");
-	var endElapsed = new Date().getTime();
-	var elapsed = endElapsed - startTime;
-	
-	var hours = Math.floor(elapsed / 36e5),
-	mins = Math.floor((elapsed % 36e5) / 6e4),
-	secs = Math.floor((elapsed % 6e4) / 1000); 
-	
-	wordsRead.innerHTML = currentWordCount;
-	wpm.innerHTML = settings.WordsPerMinute;
-	timeElapsed.innerHTML = hours.lpad("0", 2) + ':' + mins.lpad("0", 2) + ':' + secs.lpad("0", 2);
+	if(settings.OnScreenDisplay && !settingsMode)
+	{
+		var wordsRead = document.getElementById("words_read");
+		var wpm = document.getElementById("words_per_minute");
+		var timeElapsed = document.getElementById("time_elapsed");
+		var endElapsed = new Date().getTime();
+		var elapsed = endElapsed - startTime;
+
+		var hours = Math.floor(elapsed / 36e5),
+		mins = Math.floor((elapsed % 36e5) / 6e4),
+		secs = Math.floor((elapsed % 6e4) / 1000); 
+
+		wordsRead.innerHTML = currentWordCount;
+		wpm.innerHTML = settings.WordsPerMinute;
+		timeElapsed.innerHTML = hours.lpad("0", 2) + ':' + mins.lpad("0", 2) + ':' + secs.lpad("0", 2);
+	}
 }
 
 function moveUpArrow(timeout, increment) 
@@ -497,20 +522,15 @@ function moveUpArrow(timeout, increment)
 	var totalIncrementTimeout = 0;
 	var timeoutIncrement = timeout / increment;
 	
-	function moveArrowFunction () 
+	function moveArrowFunction() 
 	{	
 		if(totalIncrementTimeout < timeout)
 		{
 			var img = document.getElementById("upArrow");
 			img.style.left = (parseInt(img.style.left.replace('px', '')) + 1) + 'px';
 		
-			totalIncrementTimeout += timeoutIncrement;
-						
+			totalIncrementTimeout += timeoutIncrement;					
 			setTimeout(moveArrowFunction, timeoutIncrement);
-		}
-		else
-		{
-			//finished
 		}
 	}	
 	moveArrowFunction();
@@ -520,20 +540,49 @@ function getLengthOfCurrentLine()
 {
 	var startSpan = getWordElement(currentWordCount);
 	var tempSpan;
-	var endOfLine = 0;
 	var left = startSpan.getBoundingClientRect().left + window.scrollX;
 	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
 	var tempLeft = left;
-	var tempBottom = bottom;
 	var returnObject = {};
 	
-	for(var i=1; i < words && endOfLine === 0; i++)
+	var wordsOnCurrentLine = getNumberOfWordsOnCurrentLine(startSpan);
+
+	if(wordsOnCurrentLine === 0)
 	{
-		var paddedSpan = getPadSpanWord(currentWordCount + i);
-		tempSpan = document.getElementById(paddedSpan);
+		wordsOnCurrentLine = words;
+		tempSpan = getWordElement(currentWordCount + wordsOnCurrentLine);
+	}
+	else
+	{
+		tempSpan = getWordElement(currentWordCount + wordsOnCurrentLine - 1);
+	}
+
+	tempSpan = getWordElement(currentWordCount + wordsOnCurrentLine - 1);
+
+	var right = tempSpan.getBoundingClientRect().left + (tempSpan.getBoundingClientRect().width /2) + window.scrollX;
+	var length = right - left;
+	var increment = length / wordsOnCurrentLine;
+
+	document.getElementById("upArrow").style.top = (bottom + 'px');
+	document.getElementById("upArrow").style.left = (left + 'px');
+
+	returnObject = {left: left, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
+
+	return returnObject;
+}
+
+function getNumberOfWordsOnCurrentLine(startSpan)
+{
+	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
+	var endOfLine = 0;
+	
+	for(var i = 1; i < words && endOfLine === 0; i++)
+	{
+		tempSpan = getWordElement(currentWordCount + i);
+
 		if(tempSpan)
 		{
-			tempBottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
+			var tempBottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
 
 			if(Math.floor(tempBottom) > Math.floor(bottom) + pxVariance || Math.floor(tempBottom) < Math.floor(bottom) - pxVariance)
 			{
@@ -546,78 +595,45 @@ function getLengthOfCurrentLine()
 		}
 		
 	}
-	
-	if(endOfLine === 0)
-	{
-		endOfLine = words;
-		var eolPadSpan =getPadSpanWord(currentWordCount + endOfLine);
-		tempSpan = document.getElementById(eolPadSpan);
-	}
-	else
-	{
-		var tempPadSpanElse = getPadSpanWord(currentWordCount + endOfLine - 1);
-		tempSpan = document.getElementById(tempPadSpan);
-	}
-	
-	var tempPadSpan = getPadSpanWord(currentWordCount + endOfLine - 1);
-	tempSpan = document.getElementById(tempPadSpan);
-	
-	var right = tempSpan.getBoundingClientRect().left + (tempSpan.getBoundingClientRect().width /2) + window.scrollX;
-	var length = right - left;
-	var increment = length / endOfLine;
-	
-	document.getElementById("upArrow").style.top = (bottom + 'px');
-	document.getElementById("upArrow").style.left = (left + 'px');
-	
-	returnObject = {left: left, increment: increment, pixelLength:length, noWords: endOfLine};
-	console.log("left", left, "right", right, "length", length);
-	return returnObject;
+	return endOfLine;
 }
 
 function runMainLoopTextHighlight()
 {
+	var canContinueRunning;
+	
 	function f() 
-	{				
+	{
 		if(!firstLoop)
 		{
 			restoreNonReadingWord();
 		}
-			
+
 		currentWordCount++;
-		if(currentWordCount < words && !(settings.StopAfterWords && currentWordCount > settings.StopAfterWordsCount) && !(settings.StopAfterTime && totalTime > stopReadingTime))
-		{			
-			var padSpan = getPadSpanWord(currentWordCount);
-			var element = document.getElementById(padSpan);
-			
-			// null spans coming through from nodes withough parent elements when setting spans
+		
+		canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
+		
+		if(canContinueRunning)
+		{
+			var element = getWordElement(currentWordCount);
+
 			if(element)
 			{
 				setGuideArrows(element);
-					
+
 				var nonReadingStyle = element.style;
-				
+
 				element.style.background = settings.cpHexReadingBg;		
 				element.style.color = settings.cpHexReadingFg;
-						
+
 				timeout = wpmTimeout;
-				
-				if(settings.WordPause && settings.PauseWords > 0 && settings.PauseSeconds > 0 && currentWordCount > 0 && currentWordCount % settings.PauseWords === 0)
-				{
-					timeout += (settings.PauseSeconds * 1000);	
-					pauseTime += (settings.PauseSeconds * 1000);	
-				}
+
+				setPauseIfAfterPauseWordCount();
 
 				if(newLine)
 				{
-					if(settings.PauseAtStartOfLine)
-					{
-						timeout += settings.PauseAtStartOfLineMilliseconds;
-						pauseTime += settings.PauseAtStartOfLineMilliseconds;
-					}
-					
-					if(settings.AutoScroll && !settingsMode)
-						window.scrollBy(0, scrollByDistance);
-					
+					setStartOfLinePause();
+					setAutoScroll();					
 					newLine=false;
 				}
 				
@@ -633,11 +649,12 @@ function runMainLoopTextHighlight()
 				firstLoop = false;
 			}
 			else
+			{
 				timeout = 0;
-				
-			if(settings.OnScreenDisplay && !settingsMode)
-				updateOnScreenDisplay();
-			
+			}
+							
+			updateOnScreenDisplay();
+
 			function doPause() 
 			{
 				if(paused)
@@ -648,27 +665,21 @@ function runMainLoopTextHighlight()
 				else
 				{
 					setTimeout(f, timeout);
-				}			
+				}
 			}
 			doPause();
 		}
 		else
 		{
-			endTime = +new Date();
-									
-			endWord = currentWordCount;
-			currentWordCount = words;
-			readerRunning=false;
-			recordRead();
+			endReader();
 		}
 	}
 	setTimeout(f, 1500); //delay to allow time to scroll for start for large chunks of text
 }
 
-
 function recordRead() 
 {
-  var RecordObject = {};
+	var RecordObject = {};
 	RecordObject.DTSStart = startTime;
 	RecordObject.DTSEnd = endTime;
 	RecordObject.WPM = settings.WordsPerMinute;
@@ -677,8 +688,9 @@ function recordRead()
 	RecordObject.Words = words;
 	RecordObject.PauseTime = pauseTime;
 	RecordObject.ReadText = readText;
-	RecordObject.Website = document.URL;	
+	RecordObject.Website = document.URL;
 	RecordObject.SerialisedSelection = serialisedSelection;
+	
 	chrome.extension.sendRequest({
 		type: "submitReadEntry", 
 		recordObject: RecordObject
@@ -687,40 +699,43 @@ function recordRead()
 
 function setGuideArrows(elSpan) 
 {
-	elImage = document.getElementById("leftArrow");
-	var rect = elSpan.getBoundingClientRect();
-	var parentSpan = findUpTag(elSpan, "P");
+	var yVals = getNewTopOldTop(elSpan);
 
-	if(!parentSpan)
-	{
-		parentSpan = findUpTag(elSpan, "DIV");
-	}
-	
-	if(!parentSpan)
-	{
-		parentSpan = elSpan;
-	}
-	
-	parentRect = parentSpan.getBoundingClientRect();
-	
-	elImage.style.left = (parentRect.left + window.scrollX - (elImage.clientWidth + 2)) + "px"; 
-	
-	var newTop = ((rect.top + rect.bottom)/2) + window.scrollY - (elImage.clientHeight/2);
-	var oldTop = parseFloat(elImage.style.top.replace('px', ''));
-	
-	if(Math.floor(newTop) > Math.floor(oldTop) + pxVariance || Math.floor(newTop) < Math.floor(oldTop) - pxVariance) 
+	if(Math.floor(yVals.newTop) > Math.floor(yVals.oldTop) + pxVariance || Math.floor(yVals.newTop) < Math.floor(yVals.oldTop) - pxVariance) 
 	{
 		newLine = true;
-		console.log("setGuideArrows -> newline = true");
-		scrollByDistance = newTop - oldTop;
+		scrollByDistance = yVals.newTop - yVals.oldTop;
 	}	
+
+	elImage.style.top = yVals.newTop + "px";	
+}
+
+function getNewTopOldTop(elSpan)
+{
+	elImage = document.getElementById("leftArrow");
+	var rect = elSpan.getBoundingClientRect();
 	
-	elImage.style.top = newTop + "px";
+	var parentSpan = findFirstParagraphOrDiv(elSpan);
+	var parentRect = parentSpan.getBoundingClientRect();
+
+	elImage.style.left = (parentRect.left + window.scrollX - (elImage.clientWidth + 2)) + "px"; 
+
+	var oldTop = parseFloat(elImage.style.top.replace('px', ''));
+	var newTop = ( (rect.top + rect.bottom) / 2) + window.scrollY - (elImage.clientHeight / 2 );	
 	
-	if(!settings.GuideArrows || settingsMode)
+	return {newTop : newTop, oldTop : oldTop};
+}
+
+function findFirstParagraphOrDiv(element)
+{
+	var parentSpan = findUpTag(element, "P");
+	
+	if(!parentSpan)
 	{
-		elImage.style.visibility = 'hidden';
+		parentSpan = findUpTag(element, "DIV") || element;
 	}
+	
+	return parentSpan;
 }
 
 function findUpTag(el, tag) 
@@ -737,6 +752,7 @@ function findUpTag(el, tag)
 			}
 		}
 	}
+
 	return null;
 }
 
@@ -746,8 +762,8 @@ function restoreNonReadingWord()
 
 	if(element)
 	{
-		nonReadingStyle = element.style;		
-		element.style.background = settings.cpHexNonReadingBg;		
+		nonReadingStyle = element.style;
+		element.style.background = settings.cpHexNonReadingBg;
 		element.style.color = settings.cpHexNonReadingFg;
 	}
 }
@@ -764,6 +780,7 @@ function getPadSpanWord(word)
 {
 	var wordString = word.toString();
 	var padSpanWord = "sel" + wordString.lpad("0", 6);
+	
 	return padSpanWord;
 }
 
@@ -780,27 +797,21 @@ function makeEditableAndHighlight(backColor, foreColor)
 function addSpansToTextNodes(nodes, fromOffset, toOffset)
 {
 	var firstBlockOfText = true;
-	
-	for(var i=0; i< nodes.length;i++)
-	{
-		var divEl = findUpTag(nodes[i], "div");
-		var hiddenDiv = false;
-		
-		if(divEl && divEl.className.toLowerCase() == "hidden") 
-		{
-			hiddenDiv = true;
-		}
-		
-		var text = nodes[i].nodeValue;
 
+	for(var i=0; i< nodes.length;i++)
+	{			
+		var text = nodes[i].nodeValue;
 		var endText = "";
 		var textNode = nodes[i];
 		var parentSpan = document.createElement('span');
-		
+
 		var p = nodes[i].parentNode;
-	
-		if(nodes[i].nodeType == 3 && !(nodes[i].parentNode.nodeName.toLowerCase() == 'noscript' || nodes[i].parentNode.nodeName.toLowerCase() == 'script' || nodes[i].parentNode.nodeName.toLowerCase() == 'comment') && !hiddenDiv)
-		{
+		
+		var spansCanBeAdded = canSpansBeAddedToCurrentNode(nodes[i]);
+
+		if(spansCanBeAdded)
+		{	
+			
 			//trim selection for first block
 			if(firstBlockOfText)
 			{
@@ -808,15 +819,15 @@ function addSpansToTextNodes(nodes, fromOffset, toOffset)
 				{
 					fromOffset = text.lastIndexOf(' ', fromOffset);
 				}
-				
+
 				if(fromOffset > 0)
 				{
-					parentSpan.appendChild(document.createTextNode(text.substr(0,fromOffset)));
+					parentSpan.appendChild(document.createTextNode(text.substr(0, fromOffset)));
 					text = text.substr(fromOffset);
 					firstBlockOfText = false;
-				}							
+				}
 			}
-			
+
 			//trim selection for last block
 			if(i == nodes.length - 1)
 			{
@@ -824,61 +835,19 @@ function addSpansToTextNodes(nodes, fromOffset, toOffset)
 				{
 					toOffset += text.substr(toOffset).indexOf(' ');
 				}
-				
+
 				if(toOffset < text.length)
 				{
 					endText = text.substr(toOffset);
 					text = text.substr(0, toOffset);
 				}
-			}	
-			
-			var textArray = [];
-			if(text)	
-			{
-				textArray = text.split(' ');
 			}
 
-			textArray = splitByNonReadable(textArray);	
+			var textArray = createCleanArrayFromText(text);		
 
-			// add spans to words
 			for(var j=0; j< textArray.length;j++)
 			{
-				if(textArray[j].indexOf("\r") == -1 && textArray[j].indexOf("\n") == -1 && textArray[j].length > 0)
-				{
-					var span = document.createElement('span');
-					span.id = getPadSpanWord(words++);
-									
-					span.appendChild(document.createTextNode(textArray[j]));
-					
-					// don't want to add a space if last word or is an array of 1 - adding space to span for imageHighlight to get correct length
-					if(settings.ImageHighlight)
-					{
-						if(textArray.length > 1 && j < textArray.length-1)
-						{
-							span.appendChild(document.createTextNode(' '));
-						}
-			}
-
-					parentSpan.appendChild(span);
-					
-					// don't want to add a space if last word or is an array of 1 - adding space after span for textHighlight to get exact word
-					if(settings.TextHighlight)
-					{
-						if(textArray.length > 1 && j < textArray.length-1)
-						{
-							parentSpan.appendChild(document.createTextNode(' '));
-						}
-					}
-
-				}// add line feeds/carriage returns out of span, length-1 to prevent space half way through word at end of selection
-				else if(textArray[j].length === 0 || j != textArray.length - 1)
-				{
-					parentSpan.appendChild(document.createTextNode('\n '));	
-				}
-				else 
-				{
-					parentSpan.appendChild(document.createTextNode(textArray[j]));				
-				}
+				appendSpans(parentSpan, textArray, j);
 			}
 			
 			if(endText.length > 0)
@@ -893,6 +862,161 @@ function addSpansToTextNodes(nodes, fromOffset, toOffset)
 	}
 }
 
+function checkArrayForValidText(textArray)
+{
+	var valid = false;
+	
+	for(var i = 0; i < textArray.length; i++)
+	{
+		if(textArray[i].length > 0)
+		{
+			valid = true;
+		}
+	}
+	
+	return valid;
+}
+
+function appendSpans(parentSpan, textArray, j)
+{
+	var canAppendSpan = isTextValidToAppendTo(textArray[j]);
+				
+	if(canAppendSpan)
+	{
+		appendSpanToText(textArray, j, parentSpan);					
+	}
+	else if(textArray[j].length === 0 || j != textArray.length - 1)
+	{
+		parentSpan.appendChild(document.createTextNode('\n '));	
+	}
+	else 
+	{
+		parentSpan.appendChild(document.createTextNode(textArray[j]));				
+	}
+}
+
+function appendSpanToText(textArray, currentTextArrayItem, parentSpan)
+{
+	var span = document.createElement('span');
+	span.id = getPadSpanWord(words++);
+	span.appendChild(document.createTextNode(textArray[currentTextArrayItem]));
+
+	// adding space to span for imageHighlight to get correct length
+	if(settings.ImageHighlight)
+	{
+		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
+		{
+			span.appendChild(document.createTextNode(' ')); // add space inside span
+		}
+	}
+
+	parentSpan.appendChild(span);
+	
+	// adding space after span for textHighlight to get exact word
+	if(settings.TextHighlight)
+	{
+		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
+		{
+			parentSpan.appendChild(document.createTextNode(' ')); // add space outside span
+		}
+	}
+}
+
+function isTextValidToAppendTo(text)
+{
+	if(text.indexOf("\r") == -1 && text.indexOf("\n") == -1 && text.length > 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+function createCleanArrayFromText(text)
+{
+	var textArray = {};
+
+	if(text)
+	{
+		textArray = text.split(' ');
+	}
+
+	textArray = splitByNonReadable(textArray);	
+		
+	return textArray;
+}
+
+function canSpansBeAddedToCurrentNode(node)
+{
+	var hiddenDiv = isDivClassNameHidden(node);
+	
+	if(hiddenDiv)
+	{
+		return false;
+	}
+	
+	var onlyNonReadableText = isNodeOnlyNonReadableText(node.nodeValue);
+	
+	if(onlyNonReadableText)
+	{
+		return false;
+	}
+	
+	if(node.nodeType == 3)
+	{			
+		switch(node.parentNode.nodeName.toLowerCase())
+		{
+			case 'noscript':
+			case 'script':
+			case 'comment':
+				return false;
+			default:
+				return true;
+		}
+	}
+	else
+	{
+		return false;
+	}
+}
+
+function isNodeOnlyNonReadableText(text)
+{
+	if(text)
+	{
+		var replacedString = text.replace(/[\x0A|\x0D|\x20]/g, "");
+		
+		if(replacedString.length === 0)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	else
+	{
+		return true;
+	}
+}
+
+function isDivClassNameHidden(node)
+{
+	var divElement = findUpTag(node, "div");	
+	
+	if(divElement && divElement.className.toLowerCase() == "hidden") 
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 function splitByNonReadable(textArray) 
 {
 	//iterate each element
@@ -902,9 +1026,10 @@ function splitByNonReadable(textArray)
 		var text = textArray[i].split("");
 		textArray.splice(i,1);
 		var result = "";
+		
 		for(var j=0; j< text.length; j++)
 		{
-			//split by nonprintable characters and cariage returns
+			//split by chr(10)
 			if(text[j].charCodeAt(0) == 10)
 			{
 				textArray.splice((i++), 0, result);
@@ -927,11 +1052,11 @@ function removeSpans()
 	for(var currentSpan = 0; currentSpan < words; currentSpan++)
 	{
 		var padSpanWord = getPadSpanWord(currentSpan);
-		removeElementsByClass(padSpanWord);
+		removeElementsByClassName(padSpanWord);
 	}
 }
 
-function removeElementsByClass(className) 
+function removeElementsByClassName(className) 
 {
 	element = document.getElementById(className);
 	element.parentNode.replaceChild(document.createTextNode(element.innerHTML), element);

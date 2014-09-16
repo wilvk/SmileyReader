@@ -1,5 +1,3 @@
-document.addEventListener('DOMContentLoaded', function() {} );
-
 document.addEventListener('DOMContentLoaded', function() {	
 		cpReadingBg = ColorPicker(
 			document.getElementById('color-picker-reading-bg'),
@@ -31,22 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 var navbar_top = 100;
-
-document.addEventListener('DOMContentLoaded', function() { window.addEventListener("scroll", navBarResetTop,false);});
-
-function navBarResetTop() 
-{
-	var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
-
-	if(scrollTop>navbar_top&&navbar.className==="stnavbar_absolute") 
-	{
-	document.getElementById("stnavbar").className="stnavbar_fixed";
-	}
-	else if(scrollTop<navbar_top&&navbar.className==="stnavbar_fixed") 
-	{
-	document.getElementById("stnavbar").className="stnavbar_absolute";
-	}
-};
 
 function save_options() 
 {

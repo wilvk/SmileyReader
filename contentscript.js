@@ -535,14 +535,18 @@ function moveUpArrow(timeout, increment)
 	{
 		if(totalIncrementTimeout < timeout)
 		{
-			var img = document.getElementById("upArrow");
-			img.style.left = (parseInt(img.style.left.replace('px', '')) + 1) + 'px';
-
+			incrementUpArrowByOnePx();
 			totalIncrementTimeout += timeoutIncrement;					
 			setTimeout(moveArrowFunction, timeoutIncrement);
 		}
 	}
 	moveArrowFunction();
+}
+
+function incrementUpArrowByOnePx()
+{
+	var img = document.getElementById("upArrow");
+	img.style.left = (parseInt(img.style.left.replace('px', '')) + 1) + 'px';
 }
 
 function getLengthOfCurrentLine() 
@@ -551,8 +555,7 @@ function getLengthOfCurrentLine()
 	var tempSpan;
 	var left = startSpan.getBoundingClientRect().left + window.scrollX;
 	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
-	var tempLeft = left;
-	var returnObject = {};
+	var tempLeft = left;	
 
 	var wordsOnCurrentLine = getNumberOfWordsOnCurrentLine(startSpan);
 
@@ -573,11 +576,9 @@ function getLengthOfCurrentLine()
 	var increment = length / wordsOnCurrentLine;
 
 	document.getElementById("upArrow").style.top = (bottom + 'px');
-	document.getElementById("upArrow").style.left = (left + 'px');
+	document.getElementById("upArrow").style.left = (left + 'px');	
 
-	returnObject = {left: left, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
-
-	return returnObject;
+	return {left: left, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
 }
 
 function getNumberOfWordsOnCurrentLine(startSpan)

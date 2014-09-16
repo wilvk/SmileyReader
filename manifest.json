@@ -1,6 +1,6 @@
 {
   "name": "Smiley Reader For Speed Reading",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Speed reading extension to increase your reading speed (beta).",
   "permissions": ["tabs","contextMenus"],
   "web_accessible_resources": ["images/arrowLeft.png", "images/arrowUp.png","images/cross.png"] ,

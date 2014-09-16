@@ -21,7 +21,7 @@
   "browser_action": {
     "default_title": "Smiley Reader",
     "default_icon": "images/icon.png",
-    "default_popup": "popup/popup.html",
+    "default_popup": "popup.html",
     "run_at": "document_start"
   },
   "manifest_version": 2

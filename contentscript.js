@@ -517,12 +517,12 @@ function updateOnScreenDisplay()
 		var elapsed = endElapsed - startTime;
 
 		var hours = Math.floor(elapsed / 36e5),
-		mins = Math.floor((elapsed % 36e5) / 6e4),
-		secs = Math.floor((elapsed % 6e4) / 1000); 
+			mins = Math.floor((elapsed % 36e5) / 6e4),
+			secs = Math.floor((elapsed % 6e4) / 1000); 
 
 		wordsRead.innerHTML = currentWordCount;
 		wpm.innerHTML = settings.WordsPerMinute;
-		timeElapsed.innerHTML = hours.lpad("0", 2) + ':' + mins.lpad("0", 2) + ':' + secs.lpad("0", 2);
+		timeElapsed.innerHTML = String(hours).lpad("0", 2) + ':' + String(mins).lpad("0", 2) + ':' + String(secs).lpad("0", 2);
 	}
 }
 

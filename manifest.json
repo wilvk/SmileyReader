@@ -7,7 +7,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["rangy-core.js","rangy-serializer.js","rangy-cssclassapplier.js","contentscript.js"]
+      "js": ["jquery-2.1.1.min.js","rangy-core.js","rangy-serializer.js","rangy-cssclassapplier.js","contentscript.js"]
     }
   ],
   

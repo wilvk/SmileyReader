@@ -1,19 +1,20 @@
 <html>
-<head>
-<title>Smiley Reader Options</title>
-<script type="text/javascript" src="colorpicker.js"></script>
-<script type="text/javascript" src="rangy-core.js"></script>
-<script type="text/javascript" src="rangy-serializer.js"></script>
-<script type="text/javascript" src="rangy-cssclassapplier.js"></script>
-<link rel="stylesheet" type="text/css" href="themes.css" />
-<link rel="stylesheet" type="text/css" href="options.css" />
-</head>
+	<head>
+		<title>Smiley Reader Options</title>
+		<script type="text/javascript" src="colorpicker.js"></script>
+		<script type="text/javascript" src="rangy-core.js"></script>
+		<script type="text/javascript" src="rangy-serializer.js"></script>
+		<script type="text/javascript" src="rangy-cssclassapplier.js"></script>
+		<script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+		<link rel="stylesheet" type="text/css" href="themes.css" />
+		<link rel="stylesheet" type="text/css" href="options.css" />
+	</head>
 <body>
 
 <header>Reader Options</header>
 
 	<table id="options">
-		<tr>	
+		<tr class="header">	
 			<td colspan=3><h3>Reader Type Selection</h3><td>
 		</tr>
 		
@@ -32,14 +33,20 @@
 			  Text Highlight
 			</label>			
 		  </td>
-		</tr>
-		<tr></tr>		
+		</tr>		
 		<tr>	
-			<td colspan=3><h3>Reading Text Options</h3><td>
+			<td colspan=3 verticalAlign="top">
+			<label>
+				<input type="checkbox" id="ExcludeNonReadingText">Exclude Highlight From Reading Text.</td>
+			</label>
+		</tr>		
+		<tr></tr>			
+		<tr class="header startClosed">	
+			<td colspan=3><h3>Reading Text Colors</h3><td>
 		</tr>
 		<tr>
 		  <td verticalAlign="top" class="booleanOption">
-			<label>
+			<label>			
 			  Background Highlight
 			</label>
 			<td id="color_picker"><div id="color-picker-reading-bg" class="cp-default"></div></td>			
@@ -55,8 +62,8 @@
 		</tr>
 		<tr></tr>		
 		<tr></tr>
-		<tr>	
-			<td colspan=3><h3>Non-Reading Text Options</h3></td>
+		<tr class="header startClosed">	
+			<td colspan=3><h3>Non-Reading Text Colors</h3></td>
 		</tr>
 		<tr>
 		  <td verticalAlign="top" class="booleanOption">
@@ -73,51 +80,46 @@
 			</label>			
 		  </td>
 		  <td id="color_picker"><div id="color-picker-non-reading-fg" class="cp-default"></div></td>
-		</tr>		
-		<tr>	
-			<td colspan=3 verticalAlign="top">
-			<label>
-				<input type="checkbox" id="ExcludeNonReadingText">Exclude Highlight From Reading Text.</td>
-			</label>
-		</tr>			
+		</tr>
+
 		<tr></tr>		
-		<tr>	
+		<tr class="header">	
 			<td colspan=3><h3>Other Options</h3><td>
 		</tr>
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				<input type="number" id="WordsPerMinute" style="width:100px;"/>  Words Per Minute</td>
+				<input type="number" id="WordsPerMinute" style="width:40px;"/>  Words Per Minute</td>
 			</label>
 		</tr>		
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				<input type="checkbox" id="WordPause">Pause for <input type="number" id="PauseSeconds" style="width:80px;"/> seconds after reading <input type="number" id="PauseWords" style="width:80px;"/> words.</td>
+				<input type="checkbox" id="WordPause">Pause for <input type="number" id="PauseSeconds" style="width:40px;"/> seconds after reading <input type="number" id="PauseWords" style="width:40px;"/> words.</td>
 			</label>
 		</tr>			
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				Keyboard shortcut for starting/stopping Reader. Ctrl + Shift + <input type="text" id="ShortCutKey" maxLength="1" style="width:50px;"></td>
+				Keyboard shortcut for starting/stopping Reader. Ctrl + Shift + <input type="text" id="ShortCutKey" maxLength="1" style="width:40px;"></td>
 			</label>
 		</tr>				
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				<input type="checkbox" id="StopAfterWords">Stop reading after <input type="number" id="StopAfterWordsCount" style="width:80px;"> words.</td>
+				<input type="checkbox" id="StopAfterWords">Stop reading after <input type="number" id="StopAfterWordsCount" style="width:40px;"> words.</td>
 			</label>
 		</tr>	
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				<input type="checkbox" id="StopAfterTime">Stop reading after <input type="number" id="StopAfterTimeMinutes" style="width:80px;"> minutes and <input type="number" id="StopAfterTimeSeconds" style="width:80px;"> seconds.</td>
+				<input type="checkbox" id="StopAfterTime">Stop reading after <input type="number" id="StopAfterTimeMinutes" style="width:40px;"> minutes and <input type="number" id="StopAfterTimeSeconds" style="width:40px;"> seconds.</td>
 			</label>
 		</tr>		
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				<input type="checkbox" id="PauseAtStartOfLine">Pause at the start of a new line for <input type="number" id="PauseAtStartOfLineMilliseconds" style="width:80px;"> milliseconds.</td>
+				<input type="checkbox" id="PauseAtStartOfLine">Pause at the start of a new line for <input type="number" id="PauseAtStartOfLineMilliseconds" style="width:40px;"> milliseconds.</td>
 			</label>
 		</tr>
 		
@@ -137,7 +139,7 @@
 		<tr>	
 			<td colspan=3 verticalAlign="top">
 			<label>
-				Auto-scroll at <input type="number" id="AutoScrollHeight" style="width:80px;"/>  % of screen height</td>
+				Auto-scroll at <input type="number" id="AutoScrollHeight" style="width:40px;"/>  % of screen height</td>
 			</label>
 		</tr>			
 		<tr>	
@@ -147,7 +149,7 @@
 			</label>
 		</tr>
 		<tr></tr>		
-		<tr>
+		<tr class="header">
 		<td height="40px" verticalAlign="top">
 				<button id="save">Save</button>
 				<button id="restore">Restore Defaults</button>

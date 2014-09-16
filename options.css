@@ -208,3 +208,43 @@ td#color_picker {
 	color: #000;
 	font-size:11px;
 }
+
+summary::-webkit-details-marker {
+ color: #00ACF3;
+ font-size: 125%;
+ margin-right: 2px;
+}
+
+summary:focus {
+	outline-style: none;
+}
+
+article > details > summary {
+	font-size: 28px;
+	margin-top: 16px;
+}
+
+details > p {
+	margin-left: 24px;
+}
+
+details details {
+	margin-left: 36px;
+}
+
+details details summary {
+	font-size: 16px;
+}
+
+.header:hover { background-color: #dddddd; }
+
+.header {
+	border: 5px;
+	background-color: #eeeeee;
+}
+
+tr {
+  padding-top:10px;
+  padding-bottom:10px;
+  padding-right:10px;   
+}

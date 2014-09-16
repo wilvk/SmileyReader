@@ -89,7 +89,7 @@ function messageReceived(request, sender, sendResponse)
 	{
 		startReading();
 	}
-}	
+}
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 		messageReceived(request, sender, sendResponse);
@@ -114,7 +114,7 @@ function setUpOnScreenDisplay()
 	background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%);}';
 
 	document.getElementsByTagName('head')[0].appendChild(style);
-	
+
 	document.addEventListener('DOMContentLoaded', function() { 
 		window.addEventListener("scroll", navBarResetTop, false);
 	});
@@ -143,18 +143,27 @@ function setUpOnScreenDisplay()
 	pauseEl.style.color = "blue";
 	pauseEl.style.position = 'absolute';
 	pauseEl.onclick = togglePause;
-	
+
 	iDiv.appendChild(pauseEl);
 }
 
 function togglePause() 
 {
-	var pauseEl = document.getElementById("pauseText");
-	pauseEl.style.color = "blue";
-
 	if(startTime > 0 && currentWordCount < words)
 	{
 		paused = !paused;
+	}
+	
+	setNavBarText();
+}
+
+function setNavBarText()
+{
+	var pauseEl = document.getElementById("pauseText");
+
+	if(pauseEl)
+	{
+		pauseEl.style.color = "blue";
 
 		if(paused)
 		{
@@ -176,11 +185,11 @@ function navBarResetTop()
 {
 	var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
 
-	if(scrollTop > navbar_top&&navbar.className === "navbar_absolute") 
+	if(scrollTop > navbar_top && navbar.className === "navbar_absolute") 
 	{
 		document.getElementById("navbar").className = "navbar_fixed";
 	}
-	else if(scrollTop<navbar_top&&navbar.className === "navbar_fixed") 
+	else if(scrollTop < navbar_top && navbar.className === "navbar_fixed") 
 	{
 		document.getElementById("navbar").className = "navbar_absolute";
 	}
@@ -204,10 +213,13 @@ function afterSettingsLoaded()
 	{
 		setUpOnScreenDisplay();
 	}
-	
+
 	if(!settings.GuideArrows || settingsMode)
 	{
-		elImage.style.visibility = 'hidden';
+		if(typeof elImage !== 'undefined')
+		{
+			elImage.style.visibility = 'hidden';
+		}
 	}
 }
 
@@ -227,7 +239,7 @@ function doKeyPress(e)
 		{
 			startReading();
 		}
-		
+
 		if(e.keyCode == spacebarKeyCharCode && readerRunning)
 		{
 			setWindowScroll();
@@ -287,7 +299,7 @@ function initialiseBlock()
 {
 	var nodes;
 	var startOffset;
-	var endOffset;		
+	var endOffset;
 
 	getSerialisedSelection();
 
@@ -296,7 +308,7 @@ function initialiseBlock()
 
 	if(!settings.ExcludeNonReadingText)
 	{
-		makeEditableAndHighlight(settings.cpHexNonReadingBg, settings.cpHexNonReadingFg);		
+		makeEditableAndHighlight(settings.cpHexNonReadingBg, settings.cpHexNonReadingFg);
 	}
 
 	nodes = getSelectedNodes();	
@@ -306,7 +318,7 @@ function initialiseBlock()
 	addSpansToTextNodes(nodes, startOffset, endOffset);
 
 	incrementCurrentWordCountToStartOfSpans();
-	createLeftArrowimage();	
+	createLeftArrowImage();	
 	createUpArrowImage();
 	
 	var element = getWordElement(currentWordCount);
@@ -317,12 +329,17 @@ function initialiseBlock()
 		setWindowScroll();
 	}
 
+	initialiseVariablesForNewRead();
+}
+
+function initialiseVariablesForNewRead()
+{
 	window.getSelection().removeAllRanges();
 	startWord = currentWordCount;
 	currentWordCount--;
 	firstLoop = true;
 	timeout = 0;
-	startTime = +new Date();		
+	startTime = +new Date();
 }
 
 function setWindowScroll()
@@ -358,10 +375,10 @@ function runGuidedText()
 	}
 }
 
-function createLeftArrowimage()
+function createLeftArrowImage()
 {
 	var imageElement = document.createElement('img');
-	
+
 	imageElement.setAttribute('src', chrome.extension.getURL('arrowLeft.png'));
 	imageElement.setAttribute('id', 'leftArrow');
 	imageElement.style.position = 'absolute';
@@ -371,7 +388,7 @@ function createLeftArrowimage()
 function createUpArrowImage()
 {
 	var imageElement = document.createElement('img');
-	
+
 	imageElement.setAttribute('src', chrome.extension.getURL('arrowUp.png'));
 	imageElement.setAttribute('id', 'upArrow');
 	imageElement.style.position = 'absolute';
@@ -385,7 +402,6 @@ function runMainLoopImageHighlight()
 	{
 		currentWordCount++;
 		var element = getWordElement(currentWordCount);
-		var canContinueRunning;
 
 		if(element)
 		{
@@ -396,22 +412,16 @@ function runMainLoopImageHighlight()
 		{
 			lineLength = getLengthOfCurrentLine();
 		}
-		
-		canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
+
+		var canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
 
 		if(canContinueRunning)
 		{
 			timeout = wpmTimeout;
-			
-			setPauseIfAfterPauseWordCount();
 
-			if(newLine)
-			{
-				setStartOfLinePause();
-				setAutoScroll();
-				newLine=false;
-			}
-				
+			setPauseIfAfterPauseWordCount();
+			checkAndSetNewLineFunctions();
+
 			totalTime += timeout;
 			firstLoop = false;
 
@@ -432,7 +442,6 @@ function runMainLoopImageHighlight()
 				}
 			}
 			doPause();
-
 		}
 		else
 		{
@@ -480,20 +489,20 @@ function setPauseIfAfterPauseWordCount()
 function areWordsAndTimeCorrectToKeepRunning()
 {
 	if(currentWordCount > words - 1)
-	{	
+	{
 		return false;
 	}
-		
+
 	if(settings.StopAfterWords && (currentWordCount > settings.StopAfterWordsCount))
 	{
 		return false;
 	}
-	
+
 	if(settings.StopAfterTime && (totalTime > stopReadingTime))
 	{
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -521,18 +530,18 @@ function moveUpArrow(timeout, increment)
 {
 	var totalIncrementTimeout = 0;
 	var timeoutIncrement = timeout / increment;
-	
+
 	function moveArrowFunction() 
-	{	
+	{
 		if(totalIncrementTimeout < timeout)
 		{
 			var img = document.getElementById("upArrow");
 			img.style.left = (parseInt(img.style.left.replace('px', '')) + 1) + 'px';
-		
+
 			totalIncrementTimeout += timeoutIncrement;					
 			setTimeout(moveArrowFunction, timeoutIncrement);
 		}
-	}	
+	}
 	moveArrowFunction();
 }
 
@@ -544,7 +553,7 @@ function getLengthOfCurrentLine()
 	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
 	var tempLeft = left;
 	var returnObject = {};
-	
+
 	var wordsOnCurrentLine = getNumberOfWordsOnCurrentLine(startSpan);
 
 	if(wordsOnCurrentLine === 0)
@@ -575,7 +584,7 @@ function getNumberOfWordsOnCurrentLine(startSpan)
 {
 	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
 	var endOfLine = 0;
-	
+
 	for(var i = 1; i < words && endOfLine === 0; i++)
 	{
 		tempSpan = getWordElement(currentWordCount + i);
@@ -593,15 +602,52 @@ function getNumberOfWordsOnCurrentLine(startSpan)
 		{
 			endOfLine = i;
 		}
-		
+
 	}
 	return endOfLine;
 }
 
+function getTopBottomOfCurrentLine(startSpan)
+{
+	var endOfLine = 0;
+	var top = window.screen.height;
+	var bottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
+
+	for(var i = 1; i < words && endOfLine === 0; i++)
+	{
+		tempSpan = getWordElement(currentWordCount + i);
+
+		if(tempSpan)
+		{
+			var tempBottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
+			var tempTop = tempSpan.getBoundingClientRect().top + window.scrollY;
+
+			if(tempTop < top)
+			{
+				top = tempTop;
+			}
+
+			if(tempBottom > bottom)
+			{
+				bottom = tempBottom;
+			}
+
+			if(Math.floor(tempBottom) > Math.floor(bottom) + pxVariance || Math.floor(tempBottom) < Math.floor(bottom) - pxVariance)
+			{
+				endOfLine = i;
+			}
+		}
+		else
+		{
+			endOfLine = i;
+		}
+	}
+
+	return {top: top, bottom : bottom };
+}
+
 function runMainLoopTextHighlight()
 {
-	var canContinueRunning;
-	
 	function f() 
 	{
 		if(!firstLoop)
@@ -610,9 +656,9 @@ function runMainLoopTextHighlight()
 		}
 
 		currentWordCount++;
-		
-		canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
-		
+
+		var canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
+
 		if(canContinueRunning)
 		{
 			var element = getWordElement(currentWordCount);
@@ -620,39 +666,22 @@ function runMainLoopTextHighlight()
 			if(element)
 			{
 				setGuideArrows(element);
-
-				var nonReadingStyle = element.style;
-
-				element.style.background = settings.cpHexReadingBg;		
-				element.style.color = settings.cpHexReadingFg;
+				setElementReadingColors(element);
 
 				timeout = wpmTimeout;
 
 				setPauseIfAfterPauseWordCount();
+				checkAndSetNewLineFunctions();
 
-				if(newLine)
-				{
-					setStartOfLinePause();
-					setAutoScroll();					
-					newLine=false;
-				}
-				
-				//allow time for scroll to top
-				if(newLine)
-				{
-					timeout += 1500;
-					pauseTime += 1500;
-				}
-					
 				totalTime += timeout;
-				
+
 				firstLoop = false;
 			}
 			else
 			{
 				timeout = 0;
 			}
-							
+
 			updateOnScreenDisplay();
 
 			function doPause() 
@@ -677,6 +706,23 @@ function runMainLoopTextHighlight()
 	setTimeout(f, 1500); //delay to allow time to scroll for start for large chunks of text
 }
 
+function checkAndSetNewLineFunctions()
+{
+	if(newLine)
+	{
+		setStartOfLinePause();
+		setAutoScroll();
+		newLine=false;
+	}
+}
+
+function setElementReadingColors(element)
+{
+	var nonReadingStyle = element.style;
+	element.style.background = settings.cpHexReadingBg;		
+	element.style.color = settings.cpHexReadingFg;
+}
+
 function recordRead() 
 {
 	var RecordObject = {};
@@ -690,7 +736,7 @@ function recordRead()
 	RecordObject.ReadText = readText;
 	RecordObject.Website = document.URL;
 	RecordObject.SerialisedSelection = serialisedSelection;
-	
+
 	chrome.extension.sendRequest({
 		type: "submitReadEntry", 
 		recordObject: RecordObject
@@ -705,7 +751,7 @@ function setGuideArrows(elSpan)
 	{
 		newLine = true;
 		scrollByDistance = yVals.newTop - yVals.oldTop;
-	}	
+	}
 
 	elImage.style.top = yVals.newTop + "px";	
 }
@@ -714,7 +760,7 @@ function getNewTopOldTop(elSpan)
 {
 	elImage = document.getElementById("leftArrow");
 	var rect = elSpan.getBoundingClientRect();
-	
+
 	var parentSpan = findFirstParagraphOrDiv(elSpan);
 	var parentRect = parentSpan.getBoundingClientRect();
 
@@ -722,19 +768,19 @@ function getNewTopOldTop(elSpan)
 
 	var oldTop = parseFloat(elImage.style.top.replace('px', ''));
 	var newTop = ( (rect.top + rect.bottom) / 2) + window.scrollY - (elImage.clientHeight / 2 );	
-	
+
 	return {newTop : newTop, oldTop : oldTop};
 }
 
 function findFirstParagraphOrDiv(element)
 {
 	var parentSpan = findUpTag(element, "P");
-	
+
 	if(!parentSpan)
 	{
 		parentSpan = findUpTag(element, "DIV") || element;
 	}
-	
+
 	return parentSpan;
 }
 
@@ -780,7 +826,7 @@ function getPadSpanWord(word)
 {
 	var wordString = word.toString();
 	var padSpanWord = "sel" + wordString.lpad("0", 6);
-	
+
 	return padSpanWord;
 }
 
@@ -799,63 +845,31 @@ function addSpansToTextNodes(nodes, fromOffset, toOffset)
 	var firstBlockOfText = true;
 
 	for(var i=0; i< nodes.length;i++)
-	{			
+	{
 		var text = nodes[i].nodeValue;
 		var endText = "";
 		var textNode = nodes[i];
 		var parentSpan = document.createElement('span');
 
 		var p = nodes[i].parentNode;
-		
+
 		var spansCanBeAdded = canSpansBeAddedToCurrentNode(nodes[i]);
 
 		if(spansCanBeAdded)
-		{	
-			
-			//trim selection for first block
-			if(firstBlockOfText)
-			{
-				if(fromOffset > 0)
-				{
-					fromOffset = text.lastIndexOf(' ', fromOffset);
-				}
-
-				if(fromOffset > 0)
-				{
-					parentSpan.appendChild(document.createTextNode(text.substr(0, fromOffset)));
-					text = text.substr(fromOffset);
-					firstBlockOfText = false;
-				}
-			}
-
-			//trim selection for last block
-			if(i == nodes.length - 1)
-			{
-				if(toOffset < text.length)	
-				{
-					toOffset += text.substr(toOffset).indexOf(' ');
-				}
-
-				if(toOffset < text.length)
-				{
-					endText = text.substr(toOffset);
-					text = text.substr(0, toOffset);
-				}
-			}
-
+		{			
 			var textArray = createCleanArrayFromText(text);		
 
 			for(var j=0; j< textArray.length;j++)
 			{
 				appendSpans(parentSpan, textArray, j);
 			}
-			
+
 			if(endText.length > 0)
 			{
 				parentSpan.appendChild(document.createTextNode(endText));
 				endText = "";
 			}
-			
+
 			p.insertBefore(parentSpan, nodes[i]);
 			nodes[i].parentNode.removeChild(nodes[i]);						
 		}
@@ -865,7 +879,7 @@ function addSpansToTextNodes(nodes, fromOffset, toOffset)
 function checkArrayForValidText(textArray)
 {
 	var valid = false;
-	
+
 	for(var i = 0; i < textArray.length; i++)
 	{
 		if(textArray[i].length > 0)
@@ -873,25 +887,25 @@ function checkArrayForValidText(textArray)
 			valid = true;
 		}
 	}
-	
+
 	return valid;
 }
 
-function appendSpans(parentSpan, textArray, j)
+function appendSpans(parentSpan, textArray, arrayItem)
 {
-	var canAppendSpan = isTextValidToAppendTo(textArray[j]);
-				
+	var canAppendSpan = isTextValidToAppendTo(textArray[arrayItem]);
+
 	if(canAppendSpan)
 	{
-		appendSpanToText(textArray, j, parentSpan);					
+		appendSpanToText(textArray, arrayItem, parentSpan);					
 	}
-	else if(textArray[j].length === 0 || j != textArray.length - 1)
+	else if(textArray[arrayItem].length === 0 || arrayItem != textArray.length - 1)
 	{
 		parentSpan.appendChild(document.createTextNode('\n '));	
 	}
 	else 
 	{
-		parentSpan.appendChild(document.createTextNode(textArray[j]));				
+		parentSpan.appendChild(document.createTextNode(textArray[arrayItem]));				
 	}
 }
 
@@ -911,7 +925,7 @@ function appendSpanToText(textArray, currentTextArrayItem, parentSpan)
 	}
 
 	parentSpan.appendChild(span);
-	
+
 	// adding space after span for textHighlight to get exact word
 	if(settings.TextHighlight)
 	{
@@ -951,28 +965,28 @@ function createCleanArrayFromText(text)
 function canSpansBeAddedToCurrentNode(node)
 {
 	var hiddenDiv = isDivClassNameHidden(node);
-	
+
 	if(hiddenDiv)
 	{
 		return false;
 	}
-	
+
 	var onlyNonReadableText = isNodeOnlyNonReadableText(node.nodeValue);
-	
+
 	if(onlyNonReadableText)
 	{
 		return false;
 	}
-	
+
 	var parentElementIsHidden = isParentParagraphOrDivHidden(node);
-	
+
 	if(parentElementIsHidden)
 	{
 		return false;
 	}
-		
+
 	if(node.nodeType == 3)
-	{			
+	{
 		switch(node.parentNode.nodeName.toLowerCase())
 		{
 			case 'noscript':
@@ -991,15 +1005,12 @@ function isParentParagraphOrDivHidden(node)
 {
 	var element = findFirstParagraphOrDiv(node);
 	
-	if(element)
+	if(element && element.style && element.style.display.toLowerCase() === 'none')
 	{
-		if(element.style.display.toLowerCase() === 'none')
-		{
-			return true;
-		}
+		return true;
 	}
 	
-	return false;	
+	return false;
 }
 
 function isNodeOnlyNonReadableText(text)
@@ -1013,7 +1024,7 @@ function isNodeOnlyNonReadableText(text)
 			return true;
 		}		
 	}
-	
+
 	return false;
 }
 

@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {} );
 
-document.addEventListener('DOMContentLoaded', 
-	function()
-	{	
+document.addEventListener('DOMContentLoaded', function() {	
 		cpReadingBg = ColorPicker(
 			document.getElementById('color-picker-reading-bg'),
 			function(hex, hsv, rgb) {
@@ -30,8 +28,7 @@ document.addEventListener('DOMContentLoaded',
 			  document.getElementById('non_reading_text_sample').style.color = hex
 			  window.cpHexNonReadingFg = hex;
 			});    
-	});
-
+});
 
 var navbar_top = 100;
 
@@ -39,21 +36,20 @@ document.addEventListener('DOMContentLoaded', function() { window.addEventListen
 
 function navBarResetTop() 
 {
-  var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
-  
-  if(scrollTop>navbar_top&&navbar.className==="stnavbar_absolute") 
-  {
-    document.getElementById("stnavbar").className="stnavbar_fixed";
-  }
-  else if(scrollTop<navbar_top&&navbar.className==="stnavbar_fixed") 
-  {
-    document.getElementById("stnavbar").className="stnavbar_absolute";
-  }
+	var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
+
+	if(scrollTop>navbar_top&&navbar.className==="stnavbar_absolute") 
+	{
+	document.getElementById("stnavbar").className="stnavbar_fixed";
+	}
+	else if(scrollTop<navbar_top&&navbar.className==="stnavbar_fixed") 
+	{
+	document.getElementById("stnavbar").className="stnavbar_absolute";
+	}
 };
 
 function save_options() 
 {
-	//colors	
 	if(!(typeof cpHexReadingBg == 'undefined'))
 	{
 		localStorage["cpHexReadingBg"] = cpHexReadingBg;
@@ -90,7 +86,6 @@ function save_options()
 		localStorage["cpHexNonReadingFg"] = "#000000";
 	}
 	
-	// options
 	localStorage["WordsPerMinute"] = document.getElementById("WordsPerMinute").value;
 	localStorage["WordPause"] = document.getElementById("WordPause").checked;
 	localStorage["PauseSeconds"] = document.getElementById("PauseSeconds").value;
@@ -105,11 +100,9 @@ function save_options()
 	localStorage["OnScreenDisplay"] = document.getElementById("OnScreenDisplay").checked;
 	localStorage["PauseAtStartOfLine"] = document.getElementById("PauseAtStartOfLine").checked;
 	localStorage["PauseAtStartOfLineMilliseconds"] = document.getElementById("PauseAtStartOfLineMilliseconds").value;
-	localStorage["GuideArrows"] = document.getElementById("GuideArrows").checked;
-	
+	localStorage["GuideArrows"] = document.getElementById("GuideArrows").checked;	
 	localStorage["TextHighlight"] = document.getElementById("TextHighlight").checked;
-	localStorage["ImageHighlight"] = document.getElementById("ImageHighlight").checked;
-	
+	localStorage["ImageHighlight"] = document.getElementById("ImageHighlight").checked;	
 	localStorage["ExcludeNonReadingText"] = document.getElementById("ExcludeNonReadingText").checked;
 	
 	var autoScrollHeight = document.getElementById("AutoScrollHeight").value;
@@ -131,22 +124,17 @@ function save_options()
 	
 	getSettings();
 	
-	// Update status to let user know options were saved.
 	var status = document.getElementById("status");
 	status.innerHTML = "Options Saved. Pages currently open with highlighting will need to be refreshed (Shift + F5) for changes to take effect.";
 	setTimeout(function() {	status.innerHTML = "";	}, 7500);
 }
 
-// Restores select box state to saved value from localStorage.
 function load_options() 
 {	
-	//colors	
 	cpReadingBg.setHex(localStorage["cpHexReadingBg"]);
 	cpReadingFg.setHex(localStorage["cpHexReadingFg"]);
 	cpNonReadingBg.setHex(localStorage["cpHexNonReadingBg"]);
 	cpNonReadingFg.setHex(localStorage["cpHexNonReadingFg"]);
-	
-	// options
 	document.getElementById("WordsPerMinute").value = parseInt(localStorage["WordsPerMinute"]);
 	document.getElementById("WordPause").checked = localStorage["WordPause"] == 'true'? true : false;
 	document.getElementById("PauseSeconds").value = parseInt(localStorage["PauseSeconds"]);
@@ -173,3 +161,11 @@ function load_options()
 
 document.addEventListener('DOMContentLoaded', load_options);
 document.querySelector('#save').addEventListener('click', save_options);
+	
+$('.startClosed').each(function() {
+	$(this).nextUntil('tr.header').slideToggle(0);
+});
+
+$('.header').click(function(){
+	$(this).nextUntil('tr.header').slideToggle(500);
+});		

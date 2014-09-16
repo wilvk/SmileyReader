@@ -81,7 +81,8 @@ function messageReceived(request, sender, sendResponse)
 		settings.TextHighlight = JSON.parse(request.TextHighlight);
 		settings.ImageHighlight = JSON.parse(request.ImageHighlight);
 		settings.ExcludeNonReadingText = JSON.parse(request.ExcludeNonReadingText);
-		settings.AutoScrollHeight = parseInt(request.AutoScrollHeight);			
+		settings.AutoScrollHeight = parseInt(request.AutoScrollHeight);	
+		settings.GuideImageName = request.GuideImageName;
 
 		afterSettingsLoaded();
 	} 
@@ -388,8 +389,9 @@ function createLeftArrowImage()
 function createUpArrowImage()
 {
 	var imageElement = document.createElement('img');
-
-	imageElement.setAttribute('src', chrome.extension.getURL('images/arrowUp.png'));
+	var relativeImageName = 'images/guideImages/' + settings.GuideImageName;
+	
+	imageElement.setAttribute('src', chrome.extension.getURL(relativeImageName));
 	imageElement.setAttribute('id', 'upArrow');
 	imageElement.style.position = 'absolute';
 

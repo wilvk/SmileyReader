@@ -8,25 +8,18 @@ if (!localStorage['ran_before'])
 
 if (first_run) 
 {
-	// colors
 	localStorage["cpHexReadingBg"] = "#fbfaf9";
 	localStorage["cpHexReadingFg"] = "#191313";
 	localStorage["cpHexNonReadingBg"] = "#f7ff00";
 	localStorage["cpHexNonReadingFg"] = "#342c2c";
-
-	// text styles foreground
 	localStorage["ReadingBold"] = false;
 	localStorage["ReadingUnderline"] = false;
 	localStorage["ReadingItalic"] = false;
 	localStorage["ReadingStrikethrough"] = false;
-
-	// text styles background
 	localStorage["NonReadingBold"] = false;
 	localStorage["NonReadingUnderline"] = false;
 	localStorage["NonReadingItalic"] = false;
 	localStorage["NonReadingStrikethrough"] = false;
-
-	// options
 	localStorage["WordsPerMinute"] = "450";
 	localStorage["WordPause"] = false;
 	localStorage["PauseSeconds"] = "10"; 
@@ -46,6 +39,7 @@ if (first_run)
 	localStorage["ImageHighlight"] = true;
 	localStorage["ExcludeNonReadingText"] = false;
 	localStorage["AutoScrollHeight"] = "50";
+	localStorage["GuideImageName"] = "arrowUp.png";
 }
 
 var id = chrome.contextMenus.create( {
@@ -107,25 +101,18 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse)
 		{
 			returnMessage.type = "sendAllSettings";
 			
-			// colors
 			returnMessage.cpHexReadingBg = (typeof localStorage["cpHexReadingBg"] == 'undefined')? "#ffffff" : localStorage["cpHexReadingBg"];
 			returnMessage.cpHexReadingFg = (typeof localStorage["cpHexReadingFg"] == 'undefined')? "#000000" : localStorage["cpHexReadingFg"];
 			returnMessage.cpHexNonReadingBg = (typeof localStorage["cpHexNonReadingBg"] == 'undefined')? "#ffffff" : localStorage["cpHexNonReadingBg"];
-			returnMessage.cpHexNonReadingFg = (typeof localStorage["cpHexNonReadingFg"] == 'undefined')? "#000000" : localStorage["cpHexNonReadingFg"];
-			
-			// text styles foreground
+			returnMessage.cpHexNonReadingFg = (typeof localStorage["cpHexNonReadingFg"] == 'undefined')? "#000000" : localStorage["cpHexNonReadingFg"];			
 			returnMessage.ReadingBold = (typeof localStorage["ReadingBold"] == 'undefined')? false : localStorage["ReadingBold"];
 			returnMessage.ReadingUnderline = (typeof localStorage["ReadingUnderline"] == 'undefined')? false : localStorage["ReadingUnderline"];
 			returnMessage.ReadingItalic = (typeof localStorage["ReadingItalic"] == 'undefined')? false : localStorage["ReadingItalic"];
 			returnMessage.ReadingStrikethrough = (typeof localStorage["ReadingStrikethrough"] == 'undefined')? false : localStorage["ReadingStrikethrough"];
-			
-			// text styles background
 			returnMessage.NonReadingBold = (typeof localStorage["NonReadingBold"] == 'undefined')? false : localStorage["NonReadingBold"];
 			returnMessage.NonReadingUnderline = (typeof localStorage["NonReadingUnderline"] == 'undefined')? false : localStorage["NonReadingUnderline"];
 			returnMessage.NonReadingItalic = (typeof localStorage["NonReadingItalic"] == 'undefined')? false : localStorage["NonReadingItalic"];
-			returnMessage.NonReadingStrikethrough = (typeof localStorage["NonReadingStrikethrough"] == 'undefined')? false : localStorage["NonReadingStrikethrough"];
-			
-			// options
+			returnMessage.NonReadingStrikethrough = (typeof localStorage["NonReadingStrikethrough"] == 'undefined')? false : localStorage["NonReadingStrikethrough"];			
 			returnMessage.WordsPerMinute = (typeof localStorage["WordsPerMinute"] == 'undefined')? "200" : localStorage["WordsPerMinute"];
 			returnMessage.WordPause = (typeof localStorage["WordPause"] == 'undefined')? false : localStorage["WordPause"];
 			returnMessage.PauseSeconds = (typeof localStorage["PauseSeconds"] == 'undefined')? "10" : localStorage["PauseSeconds"];
@@ -144,7 +131,8 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse)
 			returnMessage.TextHighlight = (typeof localStorage["TextHighlight"] == 'undefined')? false : localStorage["TextHighlight"];
 			returnMessage.ImageHighlight = (typeof localStorage["ImageHighlight"] == 'undefined')? false : localStorage["ImageHighlight"];			
 			returnMessage.ExcludeNonReadingText = (typeof localStorage["ExcludeNonReadingText"] == 'undefined')? false : localStorage["ExcludeNonReadingText"];
-			returnMessage.AutoScrollHeight = (typeof localStorage["AutoScrollHeight"] == 'undefined')? "50" : localStorage["AutoScrollHeight"];
+			returnMessage.AutoScrollHeight = (typeof localStorage["AutoScrollHeight"] == 'undefined')? "50" : localStorage["AutoScrollHeight"];			
+			returnMessage.GuideImageName = (typeof localStorage["GuideImageName"] == 'undefined')? "arrowUp.png" : localStorage["GuideImageName"];
 		}
 		else if(request.type == "submitReadEntry")
 		{

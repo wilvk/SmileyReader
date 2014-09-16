@@ -85,7 +85,8 @@ function save_options()
 	localStorage["GuideArrows"] = document.getElementById("GuideArrows").checked;	
 	localStorage["TextHighlight"] = document.getElementById("TextHighlight").checked;
 	localStorage["ImageHighlight"] = document.getElementById("ImageHighlight").checked;	
-	localStorage["ExcludeNonReadingText"] = document.getElementById("ExcludeNonReadingText").checked;
+	localStorage["ExcludeNonReadingText"] = document.getElementById("ExcludeNonReadingText").checked;	
+	localStorage["GuideImageName"] = getSelectedGuideImageName();
 	
 	var autoScrollHeight = document.getElementById("AutoScrollHeight").value;
 	
@@ -109,6 +110,30 @@ function save_options()
 	var status = document.getElementById("status");
 	status.innerHTML = "Options Saved. Pages currently open with highlighting will need to be refreshed (Shift + F5) for changes to take effect.";
 	setTimeout(function() {	status.innerHTML = "";	}, 7500);
+}
+
+function getSelectedGuideImageName()
+{
+	var arrowChecked = document.getElementById("ArrowImage").checked;
+	var smileyChecked = document.getElementById("SmileyImage").checked;
+	var nyanChecked = document.getElementById("NyanImage").checked;
+	
+	if(arrowChecked)
+	{
+		return "arrowUp.png";
+	}
+	else if(smileyChecked)
+	{
+		return "smiley.png";
+	}
+	else if(nyanChecked)
+	{
+		return "nyan.png";
+	}
+	else
+	{
+		return "arrowUp.png";
+	}	
 }
 
 function load_options() 
@@ -137,8 +162,32 @@ function load_options()
 	document.getElementById("ExcludeNonReadingText").checked = localStorage["ExcludeNonReadingText"] == 'true'? true : false;
 	document.getElementById("AutoScrollHeight").value = parseInt(localStorage["AutoScrollHeight"]);
 	
+	setSelectedImage();
+	
 	var keyDisplay = document.getElementById("keyDisplay");
 	keyDisplay.innerHTML = localStorage["ShortCutKey"];
+}
+
+function setSelectedImage()
+{
+	var imageName = localStorage["GuideImageName"];
+	
+	if(imageName == "arrowUp.png")
+	{
+		document.getElementById("ArrowImage").checked = true;
+	}
+	else if(imageName == "smiley.png")
+	{
+		document.getElementById("SmileyImage").checked = true;
+	}
+	else if(imageName == "nyan.png")
+	{
+		document.getElementById("NyanImage").checked = true;
+	}
+	else
+	{
+		document.getElementById("ArrowImage").checked = true;
+	}	
 }
 
 document.addEventListener('DOMContentLoaded', load_options);

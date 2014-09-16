@@ -127,7 +127,7 @@ function setUpOnScreenDisplay()
 	iDiv.innerHTML = 'Words Per Minute: <span id=\'words_per_minute\'></span></br>Words Read: <span id=\'words_read\'></span></br>Time Elapsed: <span id=\'time_elapsed\'></span>';
 
 	var elImage = document.createElement('img');
-	elImage.setAttribute('src', chrome.extension.getURL('cross.png'));
+	elImage.setAttribute('src', chrome.extension.getURL('images/cross.png'));
 	elImage.setAttribute('id', 'crossImage');
 	elImage.style.position = 'absolute';
 	elImage.style.top = "15px";
@@ -379,7 +379,7 @@ function createLeftArrowImage()
 {
 	var imageElement = document.createElement('img');
 
-	imageElement.setAttribute('src', chrome.extension.getURL('arrowLeft.png'));
+	imageElement.setAttribute('src', chrome.extension.getURL('images/arrowLeft.png'));
 	imageElement.setAttribute('id', 'leftArrow');
 	imageElement.style.position = 'absolute';
 	document.getElementsByTagName('body')[0].appendChild(imageElement);
@@ -389,7 +389,7 @@ function createUpArrowImage()
 {
 	var imageElement = document.createElement('img');
 
-	imageElement.setAttribute('src', chrome.extension.getURL('arrowUp.png'));
+	imageElement.setAttribute('src', chrome.extension.getURL('images/arrowUp.png'));
 	imageElement.setAttribute('id', 'upArrow');
 	imageElement.style.position = 'absolute';
 

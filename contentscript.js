@@ -383,6 +383,7 @@ function createLeftArrowImage()
 	imageElement.setAttribute('src', chrome.extension.getURL('images/arrowLeft.png'));
 	imageElement.setAttribute('id', 'leftArrow');
 	imageElement.style.position = 'absolute';
+	imageElement.style.zIndex = 99999;
 	document.getElementsByTagName('body')[0].appendChild(imageElement);
 }
 
@@ -394,6 +395,7 @@ function createUpArrowImage()
 	imageElement.setAttribute('src', chrome.extension.getURL(relativeImageName));
 	imageElement.setAttribute('id', 'upArrow');
 	imageElement.style.position = 'absolute';
+	imageElement.style.zIndex = 99999;
 
 	document.getElementsByTagName('body')[0].appendChild(imageElement);
 }
@@ -413,6 +415,7 @@ function runMainLoopImageHighlight()
 		if(newLine || firstLoop)
 		{
 			lineLength = getLengthOfCurrentLine();
+			setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);	
 		}
 
 		var canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
@@ -451,6 +454,14 @@ function runMainLoopImageHighlight()
 		}
 	}
 	mainLoopFunction();
+}
+
+function setUpArrowNewLinePosition(bottom, left)
+{
+	var element = document.getElementById("upArrow");
+	
+	element.style.top = bottom + 'px';
+	element.style.left = left + 'px';
 }
 
 function endReader()
@@ -577,10 +588,7 @@ function getLengthOfCurrentLine()
 	var length = right - left;
 	var increment = length / wordsOnCurrentLine;
 
-	document.getElementById("upArrow").style.top = (bottom + 'px');
-	document.getElementById("upArrow").style.left = (left + 'px');	
-
-	return {left: left, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
+	return {left: left, bottom: bottom, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
 }
 
 function getNumberOfWordsOnCurrentLine(startSpan)
@@ -651,7 +659,7 @@ function getTopBottomOfCurrentLine(startSpan)
 
 function runMainLoopTextHighlight()
 {
-	function f() 
+	function mainLoopFunction() 
 	{
 		if(!firstLoop)
 		{
@@ -696,7 +704,7 @@ function runMainLoopTextHighlight()
 				}
 				else
 				{
-					setTimeout(f, timeout);
+					setTimeout(mainLoopFunction, timeout);
 				}
 			}
 			doPause();
@@ -706,7 +714,7 @@ function runMainLoopTextHighlight()
 			endReader();
 		}
 	}
-	setTimeout(f, 1500); //delay to allow time to scroll for start for large chunks of text
+	mainLoopFunction();
 }
 
 function checkAndSetNewLineFunctions()
@@ -872,7 +880,7 @@ function addSpansToTextNodes(nodes, fromOffset, toOffset)
 				parentSpan.appendChild(document.createTextNode(endText));
 				endText = "";
 			}
-
+			
 			p.insertBefore(parentSpan, nodes[i]);
 			nodes[i].parentNode.removeChild(nodes[i]);						
 		}

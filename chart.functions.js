@@ -39,8 +39,7 @@ function getChartArrays()
 					innerWTArray.push(cursor.value.Words);
 					wordTimeArray.push(innerWTArray);
 					
-					// words per minute array
-					
+					// words per minute array					
 					var innerWPMArray = [];
 					innerWPMArray.push(timePoint);
 					innerWPMArray.push(cursor.value.WPM);
@@ -52,9 +51,8 @@ function getChartArrays()
 						var innerTRArray = [];
 						innerTRArray.push(timePoint);
 						innerTRArray.push((cursor.value.DTSEnd - cursor.value.DTSStart - cursor.value.PauseTime) / (1000*60));
-						timeReadingArray.push(innerTRArray);
-						console.log("DTSEnd", cursor.value.DTSEnd, "DTSStart", cursor.value.DTSStart, "PauseTime", cursor.value.PauseTime);				
-					}
+						timeReadingArray.push(innerTRArray);								
+					}								
 				}
 				
 				// website stats
@@ -110,11 +108,10 @@ function getChartArrays()
 				cursor.continue();
 			}
 			else
-			{				
+			{											
 				document.getElementById("wordsRead").innerHTML = totalWords;
 				document.getElementById("averageWpm").innerHTML = (avgWpmTotal + avgWpmCount == 0)? 0 : Math.round((avgWpmTotal / avgWpmCount));
 				document.getElementById("totalTime").innerHTML = secondsToString(Math.round(totalTime/1000));
-				document.getElementById("");
 				loadWordTimeArray();
 				loadWordsPerMinute();
 				loadTimeReading();
@@ -159,6 +156,7 @@ function loadWordTimeArray()
 	var options = {
 		xaxis: {
 			mode: "time",
+			minTickSize: [1, "minute"]
 		},
 		selection: {
 			mode: "x"
@@ -174,7 +172,8 @@ function loadWordsPerMinute()
 
 	var options = {
 		xaxis: {
-			mode: "time"
+			mode: "time",
+			minTickSize: [1, "minute"]
 		},
 		selection: {
 			mode: "x"
@@ -199,7 +198,8 @@ function loadTimeReading()
 
 	var options = {
 		xaxis: {
-			mode: "time"
+			mode: "time",
+			minTickSize: [1, "minute"]
 		},
 		selection: {
 			mode: "x"

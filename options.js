@@ -86,6 +86,7 @@ function save_options()
 	localStorage["TextHighlight"] = document.getElementById("TextHighlight").checked;
 	localStorage["ImageHighlight"] = document.getElementById("ImageHighlight").checked;	
 	localStorage["ExcludeNonReadingText"] = document.getElementById("ExcludeNonReadingText").checked;	
+	localStorage["ShadedBackground"] = document.getElementById("ShadedBackground").checked;	
 	localStorage["GuideImageName"] = getSelectedGuideImageName();
 	
 	var autoScrollHeight = document.getElementById("AutoScrollHeight").value;
@@ -160,6 +161,7 @@ function load_options()
 	document.getElementById("TextHighlight").checked = localStorage["TextHighlight"] == 'true'? true : false;
 	document.getElementById("ImageHighlight").checked = localStorage["ImageHighlight"] == 'true'? true : false;
 	document.getElementById("ExcludeNonReadingText").checked = localStorage["ExcludeNonReadingText"] == 'true'? true : false;
+	document.getElementById("ShadedBackground").checked = localStorage["ShadedBackground"] == 'true'? true : false;
 	document.getElementById("AutoScrollHeight").value = parseInt(localStorage["AutoScrollHeight"]);
 	
 	setSelectedImage();

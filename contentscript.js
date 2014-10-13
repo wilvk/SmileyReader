@@ -1,4 +1,4 @@
-var words=0;
+var words = 0;
 var currentWordCount = 0;
 var settingsMode = false;
 var readerRunning = false;
@@ -9,15 +9,13 @@ var firstLoop = true;
 var newLine = false;
 var scrollByDistance = 0;
 var scrollMiddle = 0;
-var pxVariance = 6;
+var pxVariance = 2;
 var arbitraryMaxNumberOfWordsOnAPage = 1000000;
 var stopReadingTime = 0;
 
-//loop variables
 var totalTime = 0;
 var timeout = 0;
 
-// indexdb recorded fields
 var startTime = 0;
 var endTime = 0;
 var startWord = 0;
@@ -28,13 +26,10 @@ var readText = "";
 var website = "";
 var serialisedSelection = "";
 
-// imageVariables
 var lineLength = 0;
-
 var spacebarKeyCharCode = 32;
-
-//div
 var iDiv;
+var paper;
 
 String.prototype.lpad = function(padString, length) 
 {
@@ -83,6 +78,7 @@ function messageReceived(request, sender, sendResponse)
 		settings.ExcludeNonReadingText = JSON.parse(request.ExcludeNonReadingText);
 		settings.AutoScrollHeight = parseInt(request.AutoScrollHeight);	
 		settings.GuideImageName = request.GuideImageName;
+		settings.shadedBackground = JSON.parse(request.ShadedBackground);
 
 		afterSettingsLoaded();
 	} 
@@ -127,6 +123,12 @@ function setUpOnScreenDisplay()
 
 	iDiv.innerHTML = 'Words Per Minute: <span id=\'words_per_minute\'></span></br>Words Read: <span id=\'words_read\'></span></br>Time Elapsed: <span id=\'time_elapsed\'></span>';
 
+	appendCloseIconToOnScreenDisplay();
+	appendPauseTextToOnScreenDisplay();
+}
+
+function appendCloseIconToOnScreenDisplay()
+{
 	var elImage = document.createElement('img');
 	elImage.setAttribute('src', chrome.extension.getURL('images/cross.png'));
 	elImage.setAttribute('id', 'crossImage');
@@ -135,7 +137,10 @@ function setUpOnScreenDisplay()
 	elImage.style.right = "20px";
 	elImage.onclick = closeOnScreenDisplay;
 	iDiv.appendChild(elImage);	
+}
 
+function appendPauseTextToOnScreenDisplay()
+{
 	var pauseEl = document.createElement("div");
 	pauseEl.id = "pauseText";
 	pauseEl.innerHTML = "Pause";
@@ -144,7 +149,6 @@ function setUpOnScreenDisplay()
 	pauseEl.style.color = "blue";
 	pauseEl.style.position = 'absolute';
 	pauseEl.onclick = togglePause;
-
 	iDiv.appendChild(pauseEl);
 }
 
@@ -251,19 +255,9 @@ function doKeyPress(e)
 
 function startReading() 
 {
-	var selectedText = getSelectedText();
-
 	if(!readerRunning)
 	{
-		if(selectedText)
-		{	
-			initialiseBlock();
-			runGuidedText();
-		}
-		else
-		{
-			alert("No text Highlighted for reading.");
-		}
+		initialiseAndRunIfTextSelected();
 	}
 	else
 	{
@@ -271,12 +265,28 @@ function startReading()
 	}
 }
 
+function initialiseAndRunIfTextSelected()
+{
+	var selectedText = getSelectedText();
+
+	if(selectedText)
+	{	
+		initialiseBlock();
+		runGuidedText();
+	}
+	else
+	{
+		alert("No text Highlighted for reading.");
+	}
+}
+
 function stopReader()
 {
 	endWord = currentWordCount;
 	currentWordCount = words;
-	readerRunning=false;
+	readerRunning = false;
 	recordRead();
+	tryRemovePaper();
 	alert("Reader stopped.");
 }
 
@@ -298,10 +308,6 @@ function getSelectedText()
 
 function initialiseBlock() 
 {
-	var nodes;
-	var startOffset;
-	var endOffset;
-
 	getSerialisedSelection();
 
 	readerRunning = true;
@@ -312,18 +318,12 @@ function initialiseBlock()
 		makeEditableAndHighlight(settings.cpHexNonReadingBg, settings.cpHexNonReadingFg);
 	}
 
-	nodes = getSelectedNodes();	
-	startOffset = window.getSelection().getRangeAt(0).startOffset;
-	endOffset = window.getSelection().getRangeAt(0).endOffset;	
-
-	addSpansToTextNodes(nodes, startOffset, endOffset);
-
+	getNodesAndAddSpans();
 	incrementCurrentWordCountToStartOfSpans();
 	createLeftArrowImage();	
 	createUpArrowImage();
 	
-	var element = getWordElement(currentWordCount);
-	setGuideArrows(element);
+	getCurrentElementAndSetGuideArrows();
 
 	if(!settingsMode)
 	{
@@ -331,6 +331,15 @@ function initialiseBlock()
 	}
 
 	initialiseVariablesForNewRead();
+}
+
+function getNodesAndAddSpans()
+{	
+	nodes = getSelectedNodes();	
+	startOffset = window.getSelection().getRangeAt(0).startOffset;
+	endOffset = window.getSelection().getRangeAt(0).endOffset;	
+
+	addSpansToTextNodes(nodes, startOffset, endOffset);
 }
 
 function initialiseVariablesForNewRead()
@@ -405,18 +414,10 @@ function runMainLoopImageHighlight()
 	function mainLoopFunction() 
 	{
 		currentWordCount++;
-		var element = getWordElement(currentWordCount);
+		
+		getCurrentElementAndSetGuideArrows();
 
-		if(element)
-		{
-			setGuideArrows(element);
-		}
-
-		if(newLine || firstLoop)
-		{
-			lineLength = getLengthOfCurrentLine();
-			setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);	
-		}
+		callNewLineFunctions();
 
 		var canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
 
@@ -456,10 +457,57 @@ function runMainLoopImageHighlight()
 	mainLoopFunction();
 }
 
+function callNewLineFunctions()
+{
+	if(newLine || firstLoop)
+	{
+		lineLength = getLengthOfCurrentLine();
+		setBlackoutShading(lineLength);
+		setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);	
+	}
+}
+
+function setBlackoutShading(lineLength)
+{
+	if(settings.shadedBackground)
+	{
+		var docHeight = (document.height !== undefined) ? document.height : document.body.offsetHeight;
+		var docWidth = (document.width !== undefined) ? document.width : document.body.offsetWidth;
+		var gap = (lineLength.top - lineLength.bottom ) / 2;
+
+		tryRemovePaper();
+
+		paper = Raphael(0, 0, docWidth, docHeight);
+		var rectangleOne = paper.rect(0, 0, docWidth, lineLength.top + gap).attr({"fill":"black","opacity":"0.7"});
+		var rectangleTwo = paper.rect(0, lineLength.bottom - gap, docWidth, docHeight).attr({"fill":"black","opacity":"0.7"});
+	}
+}
+
+function tryRemovePaper()
+{
+	try
+	{
+		paper.remove();
+	}
+	catch (error) 
+	{
+		
+	}
+}
+
+function getCurrentElementAndSetGuideArrows()
+{
+	var element = getWordElement(currentWordCount);
+
+	if(element)
+	{
+		setGuideArrows(element);
+	}
+}
+
 function setUpArrowNewLinePosition(bottom, left)
 {
 	var element = document.getElementById("upArrow");
-	
 	element.style.top = bottom + 'px';
 	element.style.left = left + 'px';
 }
@@ -471,6 +519,7 @@ function endReader()
 	currentWordCount = words;
 	readerRunning = false;
 	recordRead();
+	tryRemovePaper();
 }
 
 function setAutoScroll()
@@ -529,9 +578,7 @@ function updateOnScreenDisplay()
 		var endElapsed = new Date().getTime();
 		var elapsed = endElapsed - startTime;
 
-		var hours = Math.floor(elapsed / 36e5),
-			mins = Math.floor((elapsed % 36e5) / 6e4),
-			secs = Math.floor((elapsed % 6e4) / 1000); 
+		var hours = Math.floor(elapsed / 36e5),	mins = Math.floor((elapsed % 36e5) / 6e4), secs = Math.floor((elapsed % 6e4) / 1000); 
 
 		wordsRead.innerHTML = currentWordCount;
 		wpm.innerHTML = settings.WordsPerMinute;
@@ -569,6 +616,7 @@ function getLengthOfCurrentLine()
 	var left = startSpan.getBoundingClientRect().left + window.scrollX;
 	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
 	var tempLeft = left;	
+	var top = startSpan.getBoundingClientRect().top + window.scrollY;
 
 	var wordsOnCurrentLine = getNumberOfWordsOnCurrentLine(startSpan);
 
@@ -588,7 +636,7 @@ function getLengthOfCurrentLine()
 	var length = right - left;
 	var increment = length / wordsOnCurrentLine;
 
-	return {left: left, bottom: bottom, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
+	return {left: left, bottom: bottom, top: top, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
 }
 
 function getNumberOfWordsOnCurrentLine(startSpan)
@@ -616,45 +664,6 @@ function getNumberOfWordsOnCurrentLine(startSpan)
 
 	}
 	return endOfLine;
-}
-
-function getTopBottomOfCurrentLine(startSpan)
-{
-	var endOfLine = 0;
-	var top = window.screen.height;
-	var bottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
-
-	for(var i = 1; i < words && endOfLine === 0; i++)
-	{
-		tempSpan = getWordElement(currentWordCount + i);
-
-		if(tempSpan)
-		{
-			var tempBottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
-			var tempTop = tempSpan.getBoundingClientRect().top + window.scrollY;
-
-			if(tempTop < top)
-			{
-				top = tempTop;
-			}
-
-			if(tempBottom > bottom)
-			{
-				bottom = tempBottom;
-			}
-
-			if(Math.floor(tempBottom) > Math.floor(bottom) + pxVariance || Math.floor(tempBottom) < Math.floor(bottom) - pxVariance)
-			{
-				endOfLine = i;
-			}
-		}
-		else
-		{
-			endOfLine = i;
-		}
-	}
-
-	return {top: top, bottom : bottom };
 }
 
 function runMainLoopTextHighlight()
@@ -748,10 +757,7 @@ function recordRead()
 	RecordObject.Website = document.URL;
 	RecordObject.SerialisedSelection = serialisedSelection;
 
-	chrome.extension.sendRequest({
-		type: "submitReadEntry", 
-		recordObject: RecordObject
-	});
+	chrome.extension.sendRequest({type: "submitReadEntry", recordObject: RecordObject});
 }
 
 function setGuideArrows(elSpan) 
@@ -795,17 +801,17 @@ function findFirstParagraphOrDiv(element)
 	return parentSpan;
 }
 
-function findUpTag(el, tag) 
+function findUpTag(element, tag) 
 {
-	while (el.parentNode) 
+	while (element.parentNode) 
 	{
-		el = el.parentNode;
+		element = element.parentNode;
 		
-		if(el && el.tagName)
+		if(element && element.tagName)
 		{
-			if (el.tagName.toLowerCase() === tag.toLowerCase())
+			if (element.tagName.toLowerCase() === tag.toLowerCase())
 			{
-				return el;
+				return element;
 			}
 		}
 	}
@@ -926,23 +932,21 @@ function appendSpanToText(textArray, currentTextArrayItem, parentSpan)
 	span.id = getPadSpanWord(words++);
 	span.appendChild(document.createTextNode(textArray[currentTextArrayItem]));
 
-	// adding space to span for imageHighlight to get correct length
 	if(settings.ImageHighlight)
 	{
 		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
 		{
-			span.appendChild(document.createTextNode(' ')); // add space inside span
+			span.appendChild(document.createTextNode(' '));
 		}
 	}
 
 	parentSpan.appendChild(span);
 
-	// adding space after span for textHighlight to get exact word
 	if(settings.TextHighlight)
 	{
 		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
 		{
-			parentSpan.appendChild(document.createTextNode(' ')); // add space outside span
+			parentSpan.appendChild(document.createTextNode(' '));
 		}
 	}
 }
@@ -966,9 +970,7 @@ function createCleanArrayFromText(text)
 	if(text)
 	{
 		textArray = text.split(' ');
-	}
-
-	textArray = splitByNonReadable(textArray);	
+	}	
 		
 	return textArray;
 }
@@ -1035,7 +1037,7 @@ function isNodeOnlyNonReadableText(text)
 			return true;
 		}		
 	}
-
+	
 	return false;
 }
 
@@ -1049,36 +1051,6 @@ function isDivClassNameHidden(node)
 	}
 
 	return false;
-}
-
-function splitByNonReadable(textArray) 
-{
-	//iterate each element
-	for(var i=0; i < textArray.length; i++)
-	{
-		//remove element
-		var text = textArray[i].split("");
-		textArray.splice(i,1);
-		var result = "";
-		
-		for(var j=0; j< text.length; j++)
-		{
-			//split by chr(10)
-			if(text[j].charCodeAt(0) == 10)
-			{
-				textArray.splice((i++), 0, result);
-				result = "";
-			}
-			else
-			{
-				result += text[j];
-			}
-		}
-		
-		textArray.splice((i), 0, result);
-	}
-	
-	return textArray;
 }
 
 function removeSpans() 

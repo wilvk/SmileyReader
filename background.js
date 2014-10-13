@@ -40,6 +40,7 @@ if (first_run)
 	localStorage["ExcludeNonReadingText"] = false;
 	localStorage["AutoScrollHeight"] = "50";
 	localStorage["GuideImageName"] = "arrowUp.png";
+	localStorage["ShadedBackground"] = false;
 }
 
 var id = chrome.contextMenus.create( {
@@ -133,6 +134,7 @@ chrome.extension.onRequest.addListener(function(request, sender, sendResponse)
 			returnMessage.ExcludeNonReadingText = (typeof localStorage["ExcludeNonReadingText"] == 'undefined')? false : localStorage["ExcludeNonReadingText"];
 			returnMessage.AutoScrollHeight = (typeof localStorage["AutoScrollHeight"] == 'undefined')? "50" : localStorage["AutoScrollHeight"];			
 			returnMessage.GuideImageName = (typeof localStorage["GuideImageName"] == 'undefined')? "arrowUp.png" : localStorage["GuideImageName"];
+			returnMessage.ShadedBackground = (typeof localStorage["ShadedBackground"] == 'undefined')? false : localStorage["ShadedBackground"];
 		}
 		else if(request.type == "submitReadEntry")
 		{

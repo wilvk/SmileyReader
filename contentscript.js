@@ -338,8 +338,9 @@ function getNodesAndAddSpans()
 	nodes = getSelectedNodes();	
 	startOffset = window.getSelection().getRangeAt(0).startOffset;
 	endOffset = window.getSelection().getRangeAt(0).endOffset;	
-
-	addSpansToTextNodes(nodes, startOffset, endOffset);
+	
+	var spanAppender = new SpanAppender(settings);
+	spanAppender.addSpansToTextNodes(nodes);
 }
 
 function initialiseVariablesForNewRead()
@@ -857,42 +858,6 @@ function makeEditableAndHighlight(backColor, foreColor)
 	highlightApplier.toggleSelection();	
 }
 
-function addSpansToTextNodes(nodes, fromOffset, toOffset)
-{
-	var firstBlockOfText = true;
-
-	for(var i=0; i< nodes.length;i++)
-	{
-		var text = nodes[i].nodeValue;
-		var endText = "";
-		var textNode = nodes[i];
-		var parentSpan = document.createElement('span');
-
-		var p = nodes[i].parentNode;
-
-		var spansCanBeAdded = canSpansBeAddedToCurrentNode(nodes[i]);
-
-		if(spansCanBeAdded)
-		{			
-			var textArray = createCleanArrayFromText(text);		
-
-			for(var j=0; j< textArray.length;j++)
-			{
-				appendSpans(parentSpan, textArray, j);
-			}
-
-			if(endText.length > 0)
-			{
-				parentSpan.appendChild(document.createTextNode(endText));
-				endText = "";
-			}
-			
-			p.insertBefore(parentSpan, nodes[i]);
-			nodes[i].parentNode.removeChild(nodes[i]);						
-		}
-	}
-}
-
 function checkArrayForValidText(textArray)
 {
 	var valid = false;
@@ -908,49 +873,6 @@ function checkArrayForValidText(textArray)
 	return valid;
 }
 
-function appendSpans(parentSpan, textArray, arrayItem)
-{
-	var canAppendSpan = isTextValidToAppendTo(textArray[arrayItem]);
-
-	if(canAppendSpan)
-	{
-		appendSpanToText(textArray, arrayItem, parentSpan);					
-	}
-	else if(textArray[arrayItem].length === 0 || arrayItem != textArray.length - 1)
-	{
-		parentSpan.appendChild(document.createTextNode('\n '));	
-	}
-	else 
-	{
-		parentSpan.appendChild(document.createTextNode(textArray[arrayItem]));				
-	}
-}
-
-function appendSpanToText(textArray, currentTextArrayItem, parentSpan)
-{
-	var span = document.createElement('span');
-	span.id = getPadSpanWord(words++);
-	span.appendChild(document.createTextNode(textArray[currentTextArrayItem]));
-
-	if(settings.ImageHighlight)
-	{
-		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
-		{
-			span.appendChild(document.createTextNode(' '));
-		}
-	}
-
-	parentSpan.appendChild(span);
-
-	if(settings.TextHighlight)
-	{
-		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
-		{
-			parentSpan.appendChild(document.createTextNode(' '));
-		}
-	}
-}
-
 function isTextValidToAppendTo(text)
 {
 	if(text.indexOf("\r") == -1 && text.indexOf("\n") == -1 && text.length > 0)
@@ -961,111 +883,6 @@ function isTextValidToAppendTo(text)
 	{
 		return false;
 	}
-}
-
-function createCleanArrayFromText(text)
-{
-	var textArray = {};
-
-	if(text)
-	{
-		textArray = text.split(' ');
-	}	
-		
-	return textArray;
-}
-
-function canSpansBeAddedToCurrentNode(node)
-{
-	var hiddenDiv = isDivClassNameHidden(node);
-
-	if(hiddenDiv)
-	{
-		return false;
-	}
-
-	var onlyNonReadableText = isNodeOnlyNonReadableText(node.nodeValue);
-
-	if(onlyNonReadableText)
-	{
-		return false;
-	}
-
-	var parentElementIsHidden = isParentParagraphOrDivHidden(node);
-
-	if(parentElementIsHidden)
-	{
-		return false;
-	}
-
-	if(node.nodeType == 3)
-	{
-		switch(node.parentNode.nodeName.toLowerCase())
-		{
-			case 'noscript':
-			case 'script':
-			case 'comment':
-				return false;
-			default:
-				return true;
-		}
-	}
-
-	return false;
-}
-
-function isParentParagraphOrDivHidden(node)
-{
-	var element = findFirstParagraphOrDiv(node);
-	
-	if(element && element.style && element.style.display.toLowerCase() === 'none')
-	{
-		return true;
-	}
-	
-	return false;
-}
-
-function isNodeOnlyNonReadableText(text)
-{
-	if(text)
-	{
-		var replacedString = text.replace(/[\x0A|\x0D|\x20]/g, "");
-		
-		if(replacedString.length === 0)
-		{
-			return true;
-		}		
-	}
-	
-	return false;
-}
-
-function isDivClassNameHidden(node)
-{
-	var divElement = findUpTag(node, "div");	
-	
-	if(divElement && divElement.className.toLowerCase() == "hidden") 
-	{
-		return true;
-	}
-
-	return false;
-}
-
-function removeSpans() 
-{
-	for(var currentSpan = 0; currentSpan < words; currentSpan++)
-	{
-		var padSpanWord = getPadSpanWord(currentSpan);
-		removeElementsByClassName(padSpanWord);
-	}
-}
-
-function removeElementsByClassName(className) 
-{
-	element = document.getElementById(className);
-	element.parentNode.replaceChild(document.createTextNode(element.innerHTML), element);
 }
 
 function getSelectedNodes() 

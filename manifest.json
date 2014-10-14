@@ -1,13 +1,20 @@
 {
   "name": "Smiley Reader For Speed Reading",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Speed reading extension to increase your reading speed (beta).",
   "permissions": ["tabs","contextMenus"],
   "web_accessible_resources": ["images/arrowLeft.png", "images/guideImages/arrowUp.png","images/cross.png","images/guideImages/smiley.png","images/guideImages/nyan.png"] ,
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["libs/jquery-2.1.1.min.js","libs/rangy-core.js","libs/rangy-serializer.js","libs/rangy-cssclassapplier.js","libs/raphael-min.js","contentscript.js"]
+      "js": ["libs/jquery-2.1.1.min.js",
+		"libs/rangy-core.js",
+		"libs/rangy-serializer.js",
+		"libs/rangy-cssclassapplier.js",
+		"libs/raphael-min.js",
+		"nodeValidator.js",
+		"spanAppender.js",
+		"contentscript.js"]
     }
   ],
   

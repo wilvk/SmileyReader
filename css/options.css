@@ -119,7 +119,7 @@ body {
 	margin-left: 10px;
 	font-size: 80%;
   }
-  /* Make the caption in the settings table as small as possible, to pull the other fields to the right. */
+  
   td:first-child {
 	width: 1px;
 	white-space: nowrap;
@@ -155,8 +155,8 @@ body {
 	border-color: #4d90fe;
 	outline: none;
   }
-  /* Boolean options have a tighter form representation than text options. */
-  td.booleanOption { font-size: 12px; }
+
+  td.booleanOption {  }
   footer {
 	padding: 5px 0;
 	border-top: 1px solid #eee;
@@ -241,6 +241,10 @@ details details summary {
 .header {
 	border: 5px;
 	background-color: #eeeeee;
+}
+
+.headerHover {
+	cursor: pointer;
 }
 
 tr {

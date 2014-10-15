@@ -135,6 +135,7 @@ function appendCloseIconToOnScreenDisplay()
 	elImage.style.position = 'absolute';
 	elImage.style.top = "15px";
 	elImage.style.right = "20px";
+	elImage.style.cursor = "pointer";
 	elImage.onclick = closeOnScreenDisplay;
 	iDiv.appendChild(elImage);	
 }
@@ -148,6 +149,7 @@ function appendPauseTextToOnScreenDisplay()
 	pauseEl.style.right = "25px";
 	pauseEl.style.color = "blue";
 	pauseEl.style.position = 'absolute';
+	pauseEl.style.cursor = "pointer";
 	pauseEl.onclick = togglePause;
 	iDiv.appendChild(pauseEl);
 }

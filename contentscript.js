@@ -149,13 +149,13 @@ function afterSettingsLoaded()
 		onScreenDisplay.setUpOnScreenDisplay();
 	}
 
-	if(!settings.GuideArrows || settingsMode)
-	{
-		if(typeof elImage !== 'undefined')
-		{
-			elImage.style.visibility = 'hidden';
-		}
-	}
+	//if(!settings.GuideArrows || settingsMode)
+	//{
+	//	if(typeof elImage !== 'undefined')
+	//	{
+	//		elImage.style.visibility = 'hidden';
+	//	}
+	//}
 }
 
 if (window == top) 
@@ -266,8 +266,6 @@ function initialiseBlock()
 function getNodesAndAddSpans()
 {	
 	nodes = getSelectedNodes();	
-	startOffset = window.getSelection().getRangeAt(0).startOffset;
-	endOffset = window.getSelection().getRangeAt(0).endOffset;	
 	
 	var spanAppender = new SpanAppender(settings);
 	spanAppender.addSpansToTextNodes(nodes);
@@ -673,9 +671,9 @@ function recordRead()
 	chrome.extension.sendRequest({type: "submitReadEntry", recordObject: RecordObject});
 }
 
-function setGuideArrows(elSpan) 
+function setGuideArrows(elementSpan) 
 {
-	var yVals = getNewTopOldTop(elSpan);
+	var yVals = getNewTopOldTop(elementSpan);
 
 	if(Math.floor(yVals.newTop) > Math.floor(yVals.oldTop) + pxVariance || Math.floor(yVals.newTop) < Math.floor(yVals.oldTop) - pxVariance) 
 	{
@@ -683,21 +681,22 @@ function setGuideArrows(elSpan)
 		scrollByDistance = yVals.newTop - yVals.oldTop;
 	}
 
-	elImage.style.top = yVals.newTop + "px";	
+	var leftArrowImage = document.getElementById("leftArrow");
+	leftArrowImage.style.top = yVals.newTop + "px";	
 }
 
-function getNewTopOldTop(elSpan)
+function getNewTopOldTop(elementSpan)
 {
-	elImage = document.getElementById("leftArrow");
-	var rect = elSpan.getBoundingClientRect();
+	leftArrowImage = document.getElementById("leftArrow");
+	var boundingRectangle = elementSpan.getBoundingClientRect();
 
-	var parentSpan = findFirstParagraphOrDiv(elSpan);
+	var parentSpan = findFirstParagraphOrDiv(elementSpan);
 	var parentRect = parentSpan.getBoundingClientRect();
 
-	elImage.style.left = (parentRect.left + window.scrollX - (elImage.clientWidth + 2)) + "px"; 
+	leftArrowImage.style.left = (parentRect.left + window.scrollX - (leftArrowImage.clientWidth + 2)) + "px"; 
 
-	var oldTop = parseFloat(elImage.style.top.replace('px', ''));
-	var newTop = ( (rect.top + rect.bottom) / 2) + window.scrollY - (elImage.clientHeight / 2 );	
+	var oldTop = parseFloat(leftArrowImage.style.top.replace('px', ''));
+	var newTop = ( (boundingRectangle.top + boundingRectangle.bottom) / 2) + window.scrollY - (leftArrowImage.clientHeight / 2 );	
 
 	return {newTop : newTop, oldTop : oldTop};
 }

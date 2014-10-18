@@ -14,6 +14,7 @@
 		"libs/raphael-min.js",
 		"nodeValidator.js",
 		"spanAppender.js",
+		"onScreenDisplay.js",
 		"contentscript.js"]
     }
   ],

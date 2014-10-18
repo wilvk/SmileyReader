@@ -28,8 +28,9 @@ var serialisedSelection = "";
 
 var lineLength = 0;
 var spacebarKeyCharCode = 32;
-var iDiv;
 var paper;
+
+var onScreenDisplay = new OnScreenDisplay();
 
 String.prototype.lpad = function(padString, length) 
 {
@@ -100,60 +101,6 @@ function init()
 	rangy.init();
 }
 
-function setUpOnScreenDisplay() 
-{
-	var style = document.createElement('style');
-	style.type = 'text/css';
-
-	style.innerHTML = '#navbar.navbar_absolute {position:absolute; font-family: Helvetica, sans-serif; z-index: 1000; font-size: 12px; top:5px; width:200px; right:5px; height:50px; border:2px solid; padding:15px; border-radius:25px; float:left; align:left;\
-	background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%); }\
-	#navbar.navbar_fixed { position:fixed; font-family: Helvetica, sans-serif; z-index: 1000; font-size: 12px; top:5px; width:200px; right:5px; height:50px; border:2px solid; padding:15px; border-radius:25px; float:left; align:left;\
-	background: -webkit-linear-gradient(top, #ffffff 0%,#e5e5e5 100%);}';
-
-	document.getElementsByTagName('head')[0].appendChild(style);
-
-	document.addEventListener('DOMContentLoaded', function() { 
-		window.addEventListener("scroll", navBarResetTop, false);
-	});
-
-	iDiv = document.createElement('div');
-	iDiv.id = 'navbar';
-	iDiv.className = 'navbar_fixed';
-	document.getElementsByTagName('body')[0].appendChild(iDiv);
-
-	iDiv.innerHTML = 'Words Per Minute: <span id=\'words_per_minute\'></span></br>Words Read: <span id=\'words_read\'></span></br>Time Elapsed: <span id=\'time_elapsed\'></span>';
-
-	appendCloseIconToOnScreenDisplay();
-	appendPauseTextToOnScreenDisplay();
-}
-
-function appendCloseIconToOnScreenDisplay()
-{
-	var elImage = document.createElement('img');
-	elImage.setAttribute('src', chrome.extension.getURL('images/cross.png'));
-	elImage.setAttribute('id', 'crossImage');
-	elImage.style.position = 'absolute';
-	elImage.style.top = "15px";
-	elImage.style.right = "20px";
-	elImage.style.cursor = "pointer";
-	elImage.onclick = closeOnScreenDisplay;
-	iDiv.appendChild(elImage);	
-}
-
-function appendPauseTextToOnScreenDisplay()
-{
-	var pauseEl = document.createElement("div");
-	pauseEl.id = "pauseText";
-	pauseEl.innerHTML = "Pause";
-	pauseEl.style.top = "20x";
-	pauseEl.style.right = "25px";
-	pauseEl.style.color = "blue";
-	pauseEl.style.position = 'absolute';
-	pauseEl.style.cursor = "pointer";
-	pauseEl.onclick = togglePause;
-	iDiv.appendChild(pauseEl);
-}
-
 function togglePause() 
 {
 	if(startTime > 0 && currentWordCount < words)
@@ -183,25 +130,6 @@ function setNavBarText()
 	}
 }
 
-function closeOnScreenDisplay() 
-{
-	iDiv.style.visibility = 'hidden';	
-}
-
-function navBarResetTop() 
-{
-	var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-
-	if(scrollTop > navbar_top && navbar.className === "navbar_absolute") 
-	{
-		document.getElementById("navbar").className = "navbar_fixed";
-	}
-	else if(scrollTop < navbar_top && navbar.className === "navbar_fixed") 
-	{
-		document.getElementById("navbar").className = "navbar_absolute";
-	}
-}
-
 function getSettings() 
 {
 	chrome.extension.sendRequest({
@@ -218,7 +146,7 @@ function afterSettingsLoaded()
 
 	if(settings.OnScreenDisplay && !settingsMode)
 	{
-		setUpOnScreenDisplay();
+		onScreenDisplay.setUpOnScreenDisplay();
 	}
 
 	if(!settings.GuideArrows || settingsMode)
@@ -278,7 +206,7 @@ function initialiseAndRunIfTextSelected()
 	}
 	else
 	{
-		alert("No text Highlighted for reading.");
+		alert("No text highlighted for reading.");
 	}
 }
 
@@ -436,7 +364,7 @@ function runMainLoopImageHighlight()
 
 			moveUpArrow(timeout, lineLength.increment);
 
-			updateOnScreenDisplay();
+			onScreenDisplay.updateOnScreenDisplay();
 
 			function doPause() 
 			{
@@ -571,24 +499,6 @@ function areWordsAndTimeCorrectToKeepRunning()
 	return true;
 }
 
-function updateOnScreenDisplay() 
-{
-	if(settings.OnScreenDisplay && !settingsMode)
-	{
-		var wordsRead = document.getElementById("words_read");
-		var wpm = document.getElementById("words_per_minute");
-		var timeElapsed = document.getElementById("time_elapsed");
-		var endElapsed = new Date().getTime();
-		var elapsed = endElapsed - startTime;
-
-		var hours = Math.floor(elapsed / 36e5),	mins = Math.floor((elapsed % 36e5) / 6e4), secs = Math.floor((elapsed % 6e4) / 1000); 
-
-		wordsRead.innerHTML = currentWordCount;
-		wpm.innerHTML = settings.WordsPerMinute;
-		timeElapsed.innerHTML = String(hours).lpad("0", 2) + ':' + String(mins).lpad("0", 2) + ':' + String(secs).lpad("0", 2);
-	}
-}
-
 function moveUpArrow(timeout, increment) 
 {
 	var totalIncrementTimeout = 0;
@@ -705,7 +615,7 @@ function runMainLoopTextHighlight()
 				timeout = 0;
 			}
 
-			updateOnScreenDisplay();
+			onScreenDisplay.updateOnScreenDisplay();
 
 			function doPause() 
 			{

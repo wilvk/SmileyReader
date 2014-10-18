@@ -31,29 +31,29 @@ function OnScreenDisplay()
 
 	this.appendCloseIconToOnScreenDisplay = function()
 	{
-		var elImage = document.createElement('img');
-		elImage.setAttribute('src', chrome.extension.getURL('images/cross.png'));
-		elImage.setAttribute('id', 'crossImage');
-		elImage.style.position = 'absolute';
-		elImage.style.top = "15px";
-		elImage.style.right = "20px";
-		elImage.style.cursor = "pointer";
-		elImage.onclick = this.closeOnScreenDisplay;
-		floatingDiv.appendChild(elImage);	
+		var imageElement = document.createElement('img');
+		imageElement.setAttribute('src', chrome.extension.getURL('images/cross.png'));
+		imageElement.setAttribute('id', 'crossImage');
+		imageElement.style.position = 'absolute';
+		imageElement.style.top = "15px";
+		imageElement.style.right = "20px";
+		imageElement.style.cursor = "pointer";
+		imageElement.onclick = this.closeOnScreenDisplay;
+		floatingDiv.appendChild(imageElement);	
 	}
 
 	this.appendPauseTextToOnScreenDisplay = function()
 	{
-		var pauseEl = document.createElement("div");
-		pauseEl.id = "pauseText";
-		pauseEl.innerHTML = "Pause";
-		pauseEl.style.top = "20x";
-		pauseEl.style.right = "25px";
-		pauseEl.style.color = "blue";
-		pauseEl.style.position = 'absolute';
-		pauseEl.style.cursor = "pointer";
-		pauseEl.onclick = togglePause;
-		floatingDiv.appendChild(pauseEl);
+		var pauseElement = document.createElement("div");
+		pauseElement.id = "pauseText";
+		pauseElement.innerHTML = "Pause";
+		pauseElement.style.top = "20x";
+		pauseElement.style.right = "25px";
+		pauseElement.style.color = "blue";
+		pauseElement.style.position = 'absolute';
+		pauseElement.style.cursor = "pointer";
+		pauseElement.onclick = togglePause;
+		floatingDiv.appendChild(pauseElement);
 	}
 
 	this.closeOnScreenDisplay = function() 

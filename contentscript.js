@@ -770,33 +770,6 @@ function makeEditableAndHighlight(backColor, foreColor)
 	highlightApplier.toggleSelection();	
 }
 
-function checkArrayForValidText(textArray)
-{
-	var valid = false;
-
-	for(var i = 0; i < textArray.length; i++)
-	{
-		if(textArray[i].length > 0)
-		{
-			valid = true;
-		}
-	}
-
-	return valid;
-}
-
-function isTextValidToAppendTo(text)
-{
-	if(text.indexOf("\r") == -1 && text.indexOf("\n") == -1 && text.length > 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
 function getSelectedNodes() 
 {
 	rangy.createMissingNativeApi();

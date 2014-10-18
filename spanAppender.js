@@ -53,7 +53,7 @@ SpanAppender.prototype.createCleanArrayFromText = function(text)
 
 SpanAppender.prototype.appendSpans = function(parentSpan, textArray, arrayItem)
 {
-	var canAppendSpan = isTextValidToAppendTo(textArray[arrayItem]);
+	var canAppendSpan = this.isTextValidToAppendTo(textArray[arrayItem]);
 
 	if(canAppendSpan)
 	{
@@ -66,6 +66,18 @@ SpanAppender.prototype.appendSpans = function(parentSpan, textArray, arrayItem)
 	else 
 	{
 		parentSpan.appendChild(document.createTextNode(textArray[arrayItem]));				
+	}
+}
+
+SpanAppender.prototype.isTextValidToAppendTo = function(text)
+{
+	if(text.indexOf("\r") == -1 && text.indexOf("\n") == -1 && text.length > 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
 	}
 }
 

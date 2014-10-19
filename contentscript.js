@@ -100,7 +100,6 @@ init();
 function init() 
 {
 	setTimeout(getSettings, 1000); // 1 second delay for message pump
-	rangy.init();
 }
 
 function togglePause() 
@@ -122,6 +121,7 @@ function getSettings()
   
 function afterSettingsLoaded() 
 {
+	rangy.init();
 	settingsMode = document.getElementById("non_reading_text_sample") !== null;
 	scrollMiddle = window.innerHeight * (settings.AutoScrollHeight / 100);
 	wpmTimeout = 60000 / settings.WordsPerMinute;
@@ -232,7 +232,7 @@ function initialiseBlock()
 	readingUpArrow = new ReadingUpArrow();
 	readingUpArrow.createUpArrowImage();
 	
-	getCurrentElementAndSetGuideArrows();
+	readingLeftArrow.getElementSetLeftArrow(currentWordCount);
 
 	if(!settingsMode)
 	{
@@ -299,7 +299,7 @@ function runMainLoopImageHighlight()
 	{
 		currentWordCount++;
 		
-		getCurrentElementAndSetGuideArrows();
+		readingLeftArrow.getElementSetLeftArrow(currentWordCount);
 
 		callNewLineFunctions();
 
@@ -407,16 +407,6 @@ function findFirstParagraphOrDiv(element)
 	}
 
 	return parentSpan;
-}
-
-function getCurrentElementAndSetGuideArrows()
-{
-	var element = getWordElement(currentWordCount);
-
-	if(element)
-	{
-		readingLeftArrow.setGuideArrows(element);
-	}
 }
 
 function endReader()

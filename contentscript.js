@@ -31,107 +31,12 @@ var spacebarKeyCharCode = 32;
 var paper;
 var readingUpArrow;
 var readingLeftArrow;
+var messaging;
 
 var onScreenDisplay = new OnScreenDisplay();
 
-String.prototype.lpad = function(padString, length) 
-{
-	var str = this;
-	while (str.length < length)
-	{
-		str = padString + str;
-	}
-
-	return str;
-};
-
-function messageReceived(request, sender, sendResponse) 
-{
-	if(request.type == "sendAllSettings")
-	{
-		settings.cpHexReadingBg = request.cpHexReadingBg;
-		settings.cpHexReadingFg = request.cpHexReadingFg;
-		settings.cpHexNonReadingBg = request.cpHexNonReadingBg;
-		settings.cpHexNonReadingFg = request.cpHexNonReadingFg;
-		settings.ReadingBold = JSON.parse(request.ReadingBold);
-		settings.ReadingUnderline = JSON.parse(request.ReadingUnderline);
-		settings.ReadingItalic = JSON.parse(request.ReadingItalic);
-		settings.ReadingStrikethrough = JSON.parse(request.ReadingStrikethrough);
-		settings.NonReadingBold = JSON.parse(request.NonReadingBold);
-		settings.NonReadingUnderline = JSON.parse(request.NonReadingUnderline);
-		settings.NonReadingItalic = JSON.parse(request.NonReadingItalic);
-		settings.NonReadingStrikethrough = JSON.parse(request.NonReadingStrikethrough);
-		settings.WordsPerMinute = parseInt(request.WordsPerMinute);
-		settings.WordPause = JSON.parse(request.WordPause);
-		settings.PauseSeconds = parseInt(request.PauseSeconds);
-		settings.AutoScroll = JSON.parse(request.AutoScroll);
-		settings.PauseWords = parseInt(request.PauseWords);
-		settings.ShortCutKey = request.ShortCutKey;
-		settings.StopAfterWords = JSON.parse(request.StopAfterWords);
-		settings.StopAfterWordsCount = parseInt(request.StopAfterWordsCount);
-		settings.StopAfterTime = JSON.parse(request.StopAfterTime);
-		settings.StopAfterTimeMinutes = parseInt(request.StopAfterTimeMinutes);
-		settings.StopAfterTimeSeconds = parseInt(request.StopAfterTimeSeconds);
-		settings.OnScreenDisplay = JSON.parse(request.OnScreenDisplay);
-		settings.PauseAtStartOfLine = JSON.parse(request.PauseAtStartOfLine);
-		settings.PauseAtStartOfLineMilliseconds = parseInt(request.PauseAtStartOfLineMilliseconds);
-		settings.GuideArrows = JSON.parse(request.GuideArrows);
-		settings.TextHighlight = JSON.parse(request.TextHighlight);
-		settings.ImageHighlight = JSON.parse(request.ImageHighlight);
-		settings.ExcludeNonReadingText = JSON.parse(request.ExcludeNonReadingText);
-		settings.AutoScrollHeight = parseInt(request.AutoScrollHeight);	
-		settings.GuideImageName = request.GuideImageName;
-		settings.shadedBackground = JSON.parse(request.ShadedBackground);
-
-		afterSettingsLoaded();
-	} 
-	else if(request.type == "startReader")
-	{
-		startReading();
-	}
-}
-
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-		messageReceived(request, sender, sendResponse);
-});
-
-init();
-
-function init() 
-{
-	setTimeout(getSettings, 1000); // 1 second delay for message pump
-}
-
-function togglePause() 
-{
-	if(startTime > 0 && currentWordCount < words)
-	{
-		paused = !paused;
-	}
-	
-	onScreenDisplay.setNavBarText();
-}
-
-function getSettings() 
-{
-	chrome.extension.sendRequest({
-		type: "requestAllSettings"
-	});
-}
-  
-function afterSettingsLoaded() 
-{
-	rangy.init();
-	settingsMode = document.getElementById("non_reading_text_sample") !== null;
-	scrollMiddle = window.innerHeight * (settings.AutoScrollHeight / 100);
-	wpmTimeout = 60000 / settings.WordsPerMinute;
-	stopReadingTime = (settings.StopAfterTimeMinutes * 60 * 1000) + (settings.StopAfterTimeSeconds * 1000);
-
-	if(settings.OnScreenDisplay && !settingsMode)
-	{
-		onScreenDisplay.setUpOnScreenDisplay();
-	}
-}
+messaging = new BackgroundMessaging();
+setTimeout(messaging.getSettings, 1000); // 1 second delay for message pump
 
 if (window == top) 
 {
@@ -155,6 +60,30 @@ function doKeyPress(e)
 			setWindowScroll();
 			togglePause();
 		}
+	}
+}
+
+function togglePause() 
+{
+	if(startTime > 0 && currentWordCount < words)
+	{
+		paused = !paused;
+	}
+	
+	onScreenDisplay.setNavBarText();
+}
+  
+function afterSettingsLoaded() 
+{
+	rangy.init();
+	settingsMode = document.getElementById("non_reading_text_sample") !== null;
+	scrollMiddle = window.innerHeight * (settings.AutoScrollHeight / 100);
+	wpmTimeout = 60000 / settings.WordsPerMinute;
+	stopReadingTime = (settings.StopAfterTimeMinutes * 60 * 1000) + (settings.StopAfterTimeSeconds * 1000);
+
+	if(settings.OnScreenDisplay && !settingsMode)
+	{
+		onScreenDisplay.setUpOnScreenDisplay();
 	}
 }
 
@@ -190,7 +119,7 @@ function stopReader()
 	endWord = currentWordCount;
 	currentWordCount = words;
 	readerRunning = false;
-	recordRead();
+	messaging.recordRead();
 	tryRemovePaper();
 	alert("Reader stopped.");
 }
@@ -310,7 +239,6 @@ function runMainLoopImageHighlight()
 			timeout = wpmTimeout;
 
 			setPauseIfAfterPauseWordCount();
-			checkAndSetNewLineFunctions();
 
 			totalTime += timeout;
 			firstLoop = false;
@@ -339,16 +267,6 @@ function runMainLoopImageHighlight()
 		}
 	}
 	mainLoopFunction();
-}
-
-function callNewLineFunctions()
-{
-	if(newLine || firstLoop)
-	{
-		lineLength = getLengthOfCurrentLine();
-		setBlackoutShading(lineLength);
-		readingUpArrow.setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);	
-	}
 }
 
 function setBlackoutShading(lineLength)
@@ -415,7 +333,7 @@ function endReader()
 	endWord = currentWordCount;
 	currentWordCount = words;
 	readerRunning = false;
-	recordRead();
+	messaging.recordRead();
 	tryRemovePaper();
 }
 
@@ -543,14 +461,9 @@ function runMainLoopTextHighlight()
 			{
 				readingLeftArrow.setGuideArrows(element);
 				setElementReadingColors(element);
-
 				timeout = wpmTimeout;
-
 				setPauseIfAfterPauseWordCount();
-				checkAndSetNewLineFunctions();
-
 				totalTime += timeout;
-
 				firstLoop = false;
 			}
 			else
@@ -582,10 +495,14 @@ function runMainLoopTextHighlight()
 	mainLoopFunction();
 }
 
-function checkAndSetNewLineFunctions()
+function callNewLineFunctions()
 {
-	if(newLine)
+	if(newLine || firstLoop)
 	{
+		lineLength = getLengthOfCurrentLine();
+		setBlackoutShading(lineLength);
+		readingUpArrow.setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);
+
 		setStartOfLinePause();
 		setAutoScroll();
 		newLine=false;
@@ -597,23 +514,6 @@ function setElementReadingColors(element)
 	var nonReadingStyle = element.style;
 	element.style.background = settings.cpHexReadingBg;		
 	element.style.color = settings.cpHexReadingFg;
-}
-
-function recordRead() 
-{
-	var RecordObject = {};
-	RecordObject.DTSStart = startTime;
-	RecordObject.DTSEnd = endTime;
-	RecordObject.WPM = settings.WordsPerMinute;
-	RecordObject.StartWord = startWord;
-	RecordObject.EndWord = endWord;
-	RecordObject.Words = words;
-	RecordObject.PauseTime = pauseTime;
-	RecordObject.ReadText = readText;
-	RecordObject.Website = document.URL;
-	RecordObject.SerialisedSelection = serialisedSelection;
-
-	chrome.extension.sendRequest({type: "submitReadEntry", recordObject: RecordObject});
 }
 
 function restoreNonReadingWord()
@@ -667,3 +567,14 @@ function getSelectedNodes()
 
 	return selectedNodes;
 }
+
+String.prototype.lpad = function(padString, length) 
+{
+	var str = this;
+	while (str.length < length)
+	{
+		str = padString + str;
+	}
+
+	return str;
+};

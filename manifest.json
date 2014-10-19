@@ -17,6 +17,7 @@
 		"onScreenDisplay.js",
 		"readingUpArrow.js",
 		"readingLeftArrow.js",
+		"backgroundMessaging.js",
 		"contentscript.js"]
     }
   ],

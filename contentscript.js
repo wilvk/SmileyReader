@@ -29,6 +29,7 @@ var serialisedSelection = "";
 var lineLength = 0;
 var spacebarKeyCharCode = 32;
 var paper;
+var readingUpArrow;
 
 var onScreenDisplay = new OnScreenDisplay();
 
@@ -148,14 +149,6 @@ function afterSettingsLoaded()
 	{
 		onScreenDisplay.setUpOnScreenDisplay();
 	}
-
-	//if(!settings.GuideArrows || settingsMode)
-	//{
-	//	if(typeof elImage !== 'undefined')
-	//	{
-	//		elImage.style.visibility = 'hidden';
-	//	}
-	//}
 }
 
 if (window == top) 
@@ -250,8 +243,10 @@ function initialiseBlock()
 
 	getNodesAndAddSpans();
 	incrementCurrentWordCountToStartOfSpans();
-	createLeftArrowImage();	
-	createUpArrowImage();
+	createLeftArrowImage();
+	
+	readingUpArrow = new ReadingUpArrow();
+	readingUpArrow.createUpArrowImage();
 	
 	getCurrentElementAndSetGuideArrows();
 
@@ -325,19 +320,6 @@ function createLeftArrowImage()
 	document.getElementsByTagName('body')[0].appendChild(imageElement);
 }
 
-function createUpArrowImage()
-{
-	var imageElement = document.createElement('img');
-	var relativeImageName = 'images/guideImages/' + settings.GuideImageName;
-	
-	imageElement.setAttribute('src', chrome.extension.getURL(relativeImageName));
-	imageElement.setAttribute('id', 'upArrow');
-	imageElement.style.position = 'absolute';
-	imageElement.style.zIndex = 99999;
-
-	document.getElementsByTagName('body')[0].appendChild(imageElement);
-}
-
 function runMainLoopImageHighlight() 
 {
 	function mainLoopFunction() 
@@ -360,7 +342,7 @@ function runMainLoopImageHighlight()
 			totalTime += timeout;
 			firstLoop = false;
 
-			moveUpArrow(timeout, lineLength.increment);
+			readingUpArrow.moveUpArrow(timeout, lineLength.increment);
 
 			onScreenDisplay.updateOnScreenDisplay();
 
@@ -392,7 +374,7 @@ function callNewLineFunctions()
 	{
 		lineLength = getLengthOfCurrentLine();
 		setBlackoutShading(lineLength);
-		setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);	
+		readingUpArrow.setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);	
 	}
 }
 
@@ -432,13 +414,6 @@ function getCurrentElementAndSetGuideArrows()
 	{
 		setGuideArrows(element);
 	}
-}
-
-function setUpArrowNewLinePosition(bottom, left)
-{
-	var element = document.getElementById("upArrow");
-	element.style.top = bottom + 'px';
-	element.style.left = left + 'px';
 }
 
 function endReader()
@@ -495,29 +470,6 @@ function areWordsAndTimeCorrectToKeepRunning()
 	}
 
 	return true;
-}
-
-function moveUpArrow(timeout, increment) 
-{
-	var totalIncrementTimeout = 0;
-	var timeoutIncrement = timeout / increment;
-
-	function moveArrowFunction() 
-	{
-		if(totalIncrementTimeout < timeout)
-		{
-			incrementUpArrowByOnePx();
-			totalIncrementTimeout += timeoutIncrement;					
-			setTimeout(moveArrowFunction, timeoutIncrement);
-		}
-	}
-	moveArrowFunction();
-}
-
-function incrementUpArrowByOnePx()
-{
-	var img = document.getElementById("upArrow");
-	img.style.left = (parseInt(img.style.left.replace('px', '')) + 1) + 'px';
 }
 
 function getLengthOfCurrentLine() 

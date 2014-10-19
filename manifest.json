@@ -15,6 +15,7 @@
 		"nodeValidator.js",
 		"spanAppender.js",
 		"onScreenDisplay.js",
+		"readingUpArrow.js",
 		"contentscript.js"]
     }
   ],

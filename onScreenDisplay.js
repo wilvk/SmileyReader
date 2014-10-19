@@ -92,4 +92,24 @@ function OnScreenDisplay()
 			document.getElementById("navbar").className = "navbar_absolute";
 		}
 	}
+	
+	this.setNavBarText = function()
+	{
+		var pauseElement = document.getElementById("pauseText");
+
+		if(pauseElement)
+		{
+			pauseElement.style.color = "blue";
+
+			if(paused)
+			{
+				pauseElement.innerHTML = "Unpause";
+			}
+			else
+			{
+				pauseElement.innerHTML = "Pause";
+			}
+		}
+	}
+
 }

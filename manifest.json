@@ -16,6 +16,7 @@
 		"spanAppender.js",
 		"onScreenDisplay.js",
 		"readingUpArrow.js",
+		"readingLeftArrow.js",
 		"contentscript.js"]
     }
   ],

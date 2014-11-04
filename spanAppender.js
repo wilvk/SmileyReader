@@ -1,5 +1,5 @@
-function SpanAppender(Settings) {
-	this.settings = Settings;
+function SpanAppender(ImageHighlight) {
+	this.imageHighlight = ImageHighlight;
 };
 
 SpanAppender.prototype.addSpansToTextNodes = function(nodes)
@@ -37,6 +37,8 @@ SpanAppender.prototype.addSpansToTextNodes = function(nodes)
 			nodes[i].parentNode.removeChild(nodes[i]);						
 		}
 	}
+	
+	return nodes;
 }
 
 SpanAppender.prototype.createCleanArrayFromText = function(text)
@@ -87,7 +89,7 @@ SpanAppender.prototype.appendSpanToText = function(textArray, currentTextArrayIt
 	span.id = getPadSpanWord(words++);
 	span.appendChild(document.createTextNode(textArray[currentTextArrayItem]));
 
-	if(settings.ImageHighlight)
+	if(this.imageHighlight)
 	{
 		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
 		{
@@ -97,7 +99,7 @@ SpanAppender.prototype.appendSpanToText = function(textArray, currentTextArrayIt
 
 	parentSpan.appendChild(span);
 
-	if(settings.TextHighlight)
+	if(!this.imageHighlight)
 	{
 		if(textArray.length > 1 && currentTextArrayItem < textArray.length - 1)
 		{

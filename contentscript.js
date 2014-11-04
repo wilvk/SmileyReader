@@ -9,9 +9,9 @@ var firstLoop = true;
 var newLine = false;
 var scrollByDistance = 0;
 var scrollMiddle = 0;
-var pxVariance = 2;
 var arbitraryMaxNumberOfWordsOnAPage = 1000000;
 var stopReadingTime = 0;
+var textRead = "";
 
 var totalTime = 0;
 var timeout = 0;
@@ -19,19 +19,18 @@ var timeout = 0;
 var startTime = 0;
 var endTime = 0;
 var startWord = 0;
-var endWord =	 0;
+var endWord = 0;
 var totalWords = 0;
 var pauseTime = 0;
-var readText = "";
 var website = "";
 var serialisedSelection = "";
 
-var lineLength = 0;
 var spacebarKeyCharCode = 32;
 var paper;
 var readingUpArrow;
 var readingLeftArrow;
 var messaging;
+var nonReadingStyle;
 
 var onScreenDisplay = new OnScreenDisplay();
 
@@ -101,9 +100,9 @@ function startReading()
 
 function initialiseAndRunIfTextSelected()
 {
-	var selectedText = getSelectedText();
+	textRead = getSelectedText();
 
-	if(selectedText)
+	if(textRead)
 	{	
 		initialiseBlock();
 		runGuidedText();
@@ -126,7 +125,7 @@ function stopReader()
 
 function getSelectedText() 
 {
-	var text = "";
+	var text;
 
 	if (typeof window.getSelection != "undefined") 
 	{
@@ -145,28 +144,19 @@ function initialiseBlock()
 	getSerialisedSelection();
 
 	readerRunning = true;
-	readText = window.getSelection().toString();
 
-	if(!settings.ExcludeNonReadingText)
-	{
-		makeEditableAndHighlight(settings.cpHexNonReadingBg, settings.cpHexNonReadingFg);
-	}
+	makeEditableAndHighlight();
 
 	getNodesAndAddSpans();
 	
 	incrementCurrentWordCountToStartOfSpans();
-	readingLeftArrow = new ReadingLeftArrow();
-	readingLeftArrow.createLeftArrowImage();
 	
+	readingLeftArrow = new ReadingLeftArrow();
 	readingUpArrow = new ReadingUpArrow();
-	readingUpArrow.createUpArrowImage();
 	
 	readingLeftArrow.getElementSetLeftArrow(currentWordCount);
 
-	if(!settingsMode)
-	{
-		setWindowScroll();
-	}
+	setWindowScroll();
 
 	initialiseVariablesForNewRead();
 }
@@ -175,8 +165,8 @@ function getNodesAndAddSpans()
 {	
 	nodes = getSelectedNodes();	
 	
-	var spanAppender = new SpanAppender(settings);
-	spanAppender.addSpansToTextNodes(nodes);
+	var spanAppender = new SpanAppender(settings.ImageHighlight);
+	nodes = spanAppender.addSpansToTextNodes(nodes);
 }
 
 function initialiseVariablesForNewRead()
@@ -191,7 +181,10 @@ function initialiseVariablesForNewRead()
 
 function setWindowScroll()
 {
-	window.scrollTo(0, parseFloat(document.getElementById("leftArrow").style.top.replace("px", "") - scrollMiddle));
+	if(!settingsMode)
+	{
+		window.scrollTo(0, parseFloat(document.getElementById("leftArrow").style.top.replace("px", "") - scrollMiddle));
+	}
 }
 
 function incrementCurrentWordCountToStartOfSpans()
@@ -224,13 +217,20 @@ function runGuidedText()
 
 function runMainLoopImageHighlight() 
 {
+	var lineIncrement;
+	
 	function mainLoopFunction() 
 	{
 		currentWordCount++;
 		
 		readingLeftArrow.getElementSetLeftArrow(currentWordCount);
 
-		callNewLineFunctions();
+		var tempIncrement = callNewLineFunctions();
+		
+		if(tempIncrement != null && tempIncrement > 0)
+		{
+			lineIncrement = tempIncrement;
+		}
 
 		var canContinueRunning = areWordsAndTimeCorrectToKeepRunning();
 
@@ -243,7 +243,7 @@ function runMainLoopImageHighlight()
 			totalTime += timeout;
 			firstLoop = false;
 
-			readingUpArrow.moveUpArrow(timeout, lineLength.increment);
+			readingUpArrow.moveUpArrow(timeout, lineIncrement);
 
 			onScreenDisplay.updateOnScreenDisplay();
 
@@ -383,63 +383,6 @@ function areWordsAndTimeCorrectToKeepRunning()
 	return true;
 }
 
-function getLengthOfCurrentLine() 
-{
-	var startSpan = getWordElement(currentWordCount);
-	var tempSpan;
-	var left = startSpan.getBoundingClientRect().left + window.scrollX;
-	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
-	var tempLeft = left;	
-	var top = startSpan.getBoundingClientRect().top + window.scrollY;
-
-	var wordsOnCurrentLine = getNumberOfWordsOnCurrentLine(startSpan);
-
-	if(wordsOnCurrentLine === 0)
-	{
-		wordsOnCurrentLine = words;
-		tempSpan = getWordElement(currentWordCount + wordsOnCurrentLine);
-	}
-	else
-	{
-		tempSpan = getWordElement(currentWordCount + wordsOnCurrentLine - 1);
-	}
-
-	tempSpan = getWordElement(currentWordCount + wordsOnCurrentLine - 1);
-
-	var right = tempSpan.getBoundingClientRect().left + (tempSpan.getBoundingClientRect().width /2) + window.scrollX;
-	var length = right - left;
-	var increment = length / wordsOnCurrentLine;
-
-	return {left: left, bottom: bottom, top: top, increment: increment, pixelLength:length, noWords: wordsOnCurrentLine};
-}
-
-function getNumberOfWordsOnCurrentLine(startSpan)
-{
-	var bottom = startSpan.getBoundingClientRect().bottom + window.scrollY;
-	var endOfLine = 0;
-
-	for(var i = 1; i < words && endOfLine === 0; i++)
-	{
-		tempSpan = getWordElement(currentWordCount + i);
-
-		if(tempSpan)
-		{
-			var tempBottom = tempSpan.getBoundingClientRect().bottom + window.scrollY;
-
-			if(Math.floor(tempBottom) > Math.floor(bottom) + pxVariance || Math.floor(tempBottom) < Math.floor(bottom) - pxVariance)
-			{
-				endOfLine = i;
-			}
-		}
-		else
-		{
-			endOfLine = i;
-		}
-
-	}
-	return endOfLine;
-}
-
 function runMainLoopTextHighlight()
 {
 	function mainLoopFunction() 
@@ -459,7 +402,7 @@ function runMainLoopTextHighlight()
 
 			if(element)
 			{
-				readingLeftArrow.setGuideArrows(element);
+				readingLeftArrow.setLeftArrowPosition(element);
 				setElementReadingColors(element);
 				timeout = wpmTimeout;
 				setPauseIfAfterPauseWordCount();
@@ -499,19 +442,22 @@ function callNewLineFunctions()
 {
 	if(newLine || firstLoop)
 	{
-		lineLength = getLengthOfCurrentLine();
-		setBlackoutShading(lineLength);
-		readingUpArrow.setUpArrowNewLinePosition(lineLength.bottom, lineLength.left);
+		var lineLengthEvaluator = new LineLength();
+	
+		var lineLengths = lineLengthEvaluator.getLengthOfCurrentLine(currentWordCount, words);
+		setBlackoutShading(lineLengths);
+		readingUpArrow.setUpArrowNewLinePosition(lineLengths.bottom, lineLengths.left);
 
 		setStartOfLinePause();
 		setAutoScroll();
 		newLine=false;
+		return lineLengths.increment;
 	}
 }
 
 function setElementReadingColors(element)
 {
-	var nonReadingStyle = element.style;
+	nonReadingStyle = element.style;
 	element.style.background = settings.cpHexReadingBg;		
 	element.style.color = settings.cpHexReadingFg;
 }
@@ -544,14 +490,17 @@ function getPadSpanWord(word)
 	return padSpanWord;
 }
 
-function makeEditableAndHighlight(backColor, foreColor) 
+function makeEditableAndHighlight() 
 {
-	var style = document.createElement('style');
-	style.type = 'text/css';
-	style.innerHTML = '*.highlightStyle { color: ' + foreColor + '; background-color: ' + backColor + ';}';
-	document.getElementsByTagName('head')[0].appendChild(style);
-	highlightApplier = rangy.createCssClassApplier("highlightStyle");
-	highlightApplier.toggleSelection();	
+	if(!settings.ExcludeNonReadingText)
+	{
+		var style = document.createElement('style');
+		style.type = 'text/css';
+		style.innerHTML = '*.highlightStyle { color: ' + settings.cpHexNonReadingFg + '; background-color: ' + settings.cpHexNonReadingBg + ';}';
+		document.getElementsByTagName('head')[0].appendChild(style);
+		highlightApplier = rangy.createCssClassApplier("highlightStyle");
+		highlightApplier.toggleSelection();	
+	}
 }
 
 function getSelectedNodes() 

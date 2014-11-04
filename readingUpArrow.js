@@ -12,6 +12,8 @@ function ReadingUpArrow()
 		document.getElementsByTagName('body')[0].appendChild(imageElement);
 	}
 	
+	this.createUpArrowImage();
+	
 	this.moveUpArrow = function(timeout, increment) 
 	{
 		var totalIncrementTimeout = 0;

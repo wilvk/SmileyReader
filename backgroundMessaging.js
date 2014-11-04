@@ -67,7 +67,7 @@ function BackgroundMessaging()
 		RecordObject.EndWord = endWord;
 		RecordObject.Words = words;
 		RecordObject.PauseTime = pauseTime;
-		RecordObject.ReadText = readText;
+		RecordObject.ReadText = textRead;
 		RecordObject.Website = document.URL;
 		RecordObject.SerialisedSelection = serialisedSelection;
 
